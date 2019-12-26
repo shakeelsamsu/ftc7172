@@ -6,6 +6,8 @@ import com.acmerobotics.roadrunner.trajectory.constraints.DriveConstraints;
 import com.qualcomm.hardware.motors.NeveRest20Gearmotor;
 import com.qualcomm.robotcore.hardware.configuration.typecontainers.MotorConfigurationType;
 
+import org.firstinspires.ftc.teamcode.R;
+
 /*
  * Constants shared between multiple drive types.
  *
@@ -45,7 +47,7 @@ public class DriveConstants {
      * convenience. Make sure to exclude any gear ratio included in MOTOR_CONFIG from GEAR_RATIO.
      */
     public static double WHEEL_RADIUS = 1.9685;
-    public static double GEAR_RATIO = 15.36; // output (wheel) speed / input (motor) speed
+    public static double GEAR_RATIO = 0.8; // output (wheel) speed / input (motor) speed
     public static double TRACK_WIDTH = 11.5;
 
     /*
@@ -54,9 +56,9 @@ public class DriveConstants {
      * motor encoders or have elected not to use them for velocity control, these values should be
      * empirically tuned.
      */
-    public static double kV = 1.0 / rpmToVelocity(getMaxRpm());
-    public static double kA = 0;
-    public static double kStatic = 0;
+    public static double kV = 0.00177;//1.0 / rpmToVelocity(getMaxRpm());
+    public static double kA = 0.00008;
+    public static double kStatic = 0.35136;
 
     /*
      * These values are used to generate the trajectories for you robot. To ensure proper operation,
