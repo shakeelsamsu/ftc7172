@@ -3,7 +3,10 @@ package org.firstinspires.ftc.teamcode.drive;
 import com.acmerobotics.dashboard.config.Config;
 import com.acmerobotics.roadrunner.control.PIDCoefficients;
 import com.acmerobotics.roadrunner.trajectory.constraints.DriveConstraints;
+<<<<<<< HEAD
 import com.qualcomm.hardware.motors.NeveRest20Gearmotor;
+=======
+>>>>>>> 60b5b01142bfee7074c29062a2a42e7ac67c4dd7
 import com.qualcomm.hardware.motors.RevRobotics20HdHexMotor;
 import com.qualcomm.robotcore.hardware.configuration.typecontainers.MotorConfigurationType;
 
@@ -25,12 +28,12 @@ public class DriveConstants {
 
     /*
      * The type of motor used on the drivetrain. While the SDK has definitions for many common
-     * motors, there may be slight gear ratio inaccuracies for planetary gearboxes and other
+     * motors, there may be slight gear ratio inaccuracies for planetar y gearboxes and other
      * discrepancies. Additional motor types can be defined via an interface with the
      * @DeviceProperties and @MotorType annotations.
      */
     private static final MotorConfigurationType MOTOR_CONFIG =
-            MotorConfigurationType.getMotorType(NeveRest20Gearmotor.class);
+            MotorConfigurationType.getMotorType(RevRobotics20HdHexMotor.class);
 
     /*
      * Set the first flag appropriately. If using the built-in motor velocity PID, update
@@ -49,7 +52,7 @@ public class DriveConstants {
      */
     public static double WHEEL_RADIUS = 1.9685;
     public static double GEAR_RATIO = 0.8; // output (wheel) speed / input (motor) speed
-    public static double TRACK_WIDTH = 11.5;
+    public static double TRACK_WIDTH = 0.04;
 
     /*
      * These are the feedforward parameters used to model the drive motor behavior. If you are using
@@ -57,9 +60,9 @@ public class DriveConstants {
      * motor encoders or have elected not to use them for velocity control, these values should be
      * empirically tuned.
      */
-    public static double kV = 0.00177;//1.0 / rpmToVelocity(getMaxRpm());
-    public static double kA = 0.00008;
-    public static double kStatic = 0.35136;
+    public static double kV = 0.00093;//1.0 / rpmToVelocity(getMaxRpm());
+    public static double kA = 0.00005;
+    public static double kStatic = 0.34869;
 
     /*
      * These values are used to generate the trajectories for you robot. To ensure proper operation,
