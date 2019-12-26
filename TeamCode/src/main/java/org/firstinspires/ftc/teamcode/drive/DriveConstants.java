@@ -3,10 +3,7 @@ package org.firstinspires.ftc.teamcode.drive;
 import com.acmerobotics.dashboard.config.Config;
 import com.acmerobotics.roadrunner.control.PIDCoefficients;
 import com.acmerobotics.roadrunner.trajectory.constraints.DriveConstraints;
-<<<<<<< HEAD
-import com.qualcomm.hardware.motors.NeveRest20Gearmotor;
-=======
->>>>>>> 60b5b01142bfee7074c29062a2a42e7ac67c4dd7
+import com.acmerobotics.roadrunner.trajectory.constraints.MecanumConstraints;
 import com.qualcomm.hardware.motors.RevRobotics20HdHexMotor;
 import com.qualcomm.robotcore.hardware.configuration.typecontainers.MotorConfigurationType;
 
@@ -39,8 +36,8 @@ public class DriveConstants {
      * Set the first flag appropriately. If using the built-in motor velocity PID, update
      * MOTOR_VELO_PID with the tuned coefficients from DriveVelocityPIDTuner.
      */
-    public static final boolean RUN_USING_ENCODER = false;
-    public static final PIDCoefficients MOTOR_VELO_PID = null;
+    public static final boolean RUN_USING_ENCODER = true;
+    public static final PIDCoefficients MOTOR_VELO_PID = new PIDCoefficients(20, 5, 15);
 
     /*
      * These are physical constants that can be determined from your robot (including the track
@@ -51,8 +48,8 @@ public class DriveConstants {
      * convenience. Make sure to exclude any gear ratio included in MOTOR_CONFIG from GEAR_RATIO.
      */
     public static double WHEEL_RADIUS = 1.9685;
-    public static double GEAR_RATIO = 0.8; // output (wheel) speed / input (motor) speed
-    public static double TRACK_WIDTH = 0.04;
+    public static double GEAR_RATIO = 1.25; // output (wheel) speed / input (motor) speed
+    public static double TRACK_WIDTH = 6.76;
 
     /*
      * These are the feedforward parameters used to model the drive motor behavior. If you are using
@@ -60,9 +57,9 @@ public class DriveConstants {
      * motor encoders or have elected not to use them for velocity control, these values should be
      * empirically tuned.
      */
-    public static double kV = 0.00093;//1.0 / rpmToVelocity(getMaxRpm());
-    public static double kA = 0.00005;
-    public static double kStatic = 0.34869;
+    public static double kV = 1.0 / rpmToVelocity(getMaxRpm());
+    public static double kA = 0.0;
+    public static double kStatic = 0;
 
     /*
      * These values are used to generate the trajectories for you robot. To ensure proper operation,
@@ -72,11 +69,14 @@ public class DriveConstants {
      * acceleration values are required, and the jerk values are optional (setting a jerk of 0.0
      * forces acceleration-limited profiling).
      */
-    public static DriveConstraints BASE_CONSTRAINTS = new DriveConstraints(
+    public static DriveConstraints BASE_CONSTRAINTS_TEMP = new DriveConstraints(
             30.0, 30.0, 0.0,
             Math.toRadians(180.0), Math.toRadians(180.0), 0.0
     );
 
+    public static DriveConstraints NEW_CONSTRAINTS = new MecanumConstraints(BASE_CONSTRAINTS_TEMP, TRACK_WIDTH, 12);
+
+    public static DriveConstraints BASE_CONSTRAINTS = NEW_CONSTRAINTS;
 
     public static double encoderTicksToInches(double ticks) {
         return WHEEL_RADIUS * 2 * Math.PI * GEAR_RATIO * ticks / MOTOR_CONFIG.getTicksPerRev();
