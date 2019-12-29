@@ -100,7 +100,7 @@ public class Glide {
     
     // Encoder Constants
     private final double TRACK_TICKS = 2332;
-    private final double TICKS_PER_INCH = 196.75; //prev 190.0 
+    private final double TICKS_PER_INCH = 196.75; //prev 190.a0
     public final int DISPLAY_ODOMETRY = 0x0001;
     public final int DISPLAY_IMU = 0x0002;
     public final int DISPLAY_LIFT = 0x0004;
@@ -505,8 +505,8 @@ public class Glide {
     // }
     
     public void stoneUpdate() {
-        double now = clock.seconds();
-        double remaining = grabStopTime - now;
+//        double now = clock.seconds();
+//        double remaining = grabStopTime - now;
         barPos = BAR_FORWARD;
         if(inPower < 0)
             barPos = BAR_FORWARD;
@@ -514,25 +514,27 @@ public class Glide {
             barPos = BAR_BACK;
             if (elevatorLimit.getVoltage() < 1) setGantry(GANTRY_RETRACT);
             if (stoneDist() < STONE_DIST_GRAB &&!grabbed) {
-                if(!seen) grabStopTime = now + GRAB_WAIT;
-                seen = true;
-                if(remaining > 0.5)
-                    letGo();
-                else if(remaining > 0) {
-                    grabBlock();
-                    seen = false;
-                    grabbed = true;
-                }
-                else {
-                    liftPower(0);
-                }
+                grabBlock();
+                grabbed = true;
+//                if(!seen) grabStopTime = now + GRAB_WAIT;
+//                seen = true;
+//                if(remaining > 0.5)
+//                    letGo();
+//                else if(remaining > 0) {
+//                    grabBlock();
+//                    seen = false;
+//                    grabbed = true;
+//                }
+//                else {
+//                    liftPower(0);
+//                }
             }
             else if (stoneDist() > STONE_DIST_GRAB) {
                 
             } //pull in gantry
-            if (!grabbed && getLiftLevel() == 0) {
-                liftPower(-.5);
-            }
+//            if (!grabbed && getLiftLevel() == 0) {
+//                liftPower(-.5);
+//            }
         }
         else grabbed = false;
         setBar(barPos);
@@ -563,7 +565,7 @@ public class Glide {
     }
     
     public void setGrab(double pos) {
-        pos = Range.clip(pos,.4,.8);
+        pos = Range.clip(pos,.49,.916);
         grab.setPosition(pos);
     }
     
@@ -572,11 +574,11 @@ public class Glide {
     }
     
     public void letGo() {
-        setGrab(.45); // out
+        setGrab(.7); // out
     }
     
     public void grabBlock() {
-        setGrab(0.66);
+        setGrab(.915);
     }
     
     // CAPSTONE

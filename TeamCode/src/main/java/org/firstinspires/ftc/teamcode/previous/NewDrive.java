@@ -96,6 +96,7 @@ public class NewDrive extends LinearOpMode {
                 else {
                     // bot.setAuto(Glide.Auto.HOME);
                     // if (lastY) bot.setGantry(bot.GANTRY_EXTEND);
+                    bot.grabBlock();
                     bot.setGantry(bot.GANTRY_RETRACT);
                     bot.setAuto(Glide.Auto.HOME);
                 }
