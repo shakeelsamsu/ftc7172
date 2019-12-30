@@ -1,21 +1,12 @@
-# Road Runner Quickstart
+# FTC 7172 - SkyStone
 
-An example FTC project using [Road Runner](https://github.com/acmerobotics/road-runner). **Note:** Road Runner is in alpha and many of its APIs are incubating.
+FIRST Tech Challenge Team 7172’s code for the Skystone Challenge (2019-2020).
 
 ## Acknowledgements
+We'd like to thank [Team 8367 acmerobotics](https://goacmerobotics.com/) for their wonderful [road-runner](https://github.com/acmerobotics/road-runner) library.
 
-The quickstart uses the fantastic [RevExtensions2 library](https://github.com/OpenFTC/RevExtensions2) to take advantage of REV Expansion Hub bulk reads (thanks @FROGbots-4634!).
+### Contributors
+* [Arnav Iyer](https://github.com/ArnavIyer)
+* [Shakeel Samsudeen](https://github.com/shakeelsamsu)
 
-## Installation
-
-For more detailed instructions on getting Road Runner setup in your own project, see the [Road Runner README](https://github.com/acmerobotics/road-runner#core).
-
-1. Download or clone this repo with `git clone https://github.com/acmerobotics/road-runner-quickstart`.
-
-1. Open the project in Android Studio and build `TeamCode` like any other `ftc_app` project.
-
-1. If you have trouble with multidex, enable proguard by changing `useProguard` to `true` in `build.common.gradle`.
-
-## Documentation
-
-Check out the new [online quickstart documentation](https://acme-robotics.gitbook.io/road-runner/quickstart).
+Note: Currently a work in progress!
