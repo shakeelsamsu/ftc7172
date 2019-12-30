@@ -1,5 +1,6 @@
 package org.firstinspires.ftc.teamcode.previous;
 
+import com.acmerobotics.dashboard.config.Config;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import org.firstinspires.ftc.robotcore.external.Telemetry;
@@ -28,7 +29,7 @@ import com.qualcomm.robotcore.hardware.AnalogInput;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.util.Range;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
-
+@Config
 public class Glide {
     
     // Hardware
@@ -41,7 +42,25 @@ public class Glide {
     private DcMotorEx lift2 = null;
     private ArrayMotor lift;
     int currLiftLevel = 0;
-    private int[] liftLevels = {0, 4800, 7300, 11000,     15500, 19700, 24000,     28500, 32000, 36500,   40500,45500,50500,   55500,60500};
+//    public static int l0 = 0;
+//    public static int l1 = 4800;
+//    public static int l2 = 7300;
+//    public static int l3 = 11000;
+//    public static int l4 = 15500;
+//    public static int l5 = 19700;
+//    public static int l6 = 24000;
+//    public static int l7 = 28500;
+//    public static int l8 = 32000;
+//    public static int l9 = 36500;
+//    public static int l10 = 40500;
+//    public static int l11 = 45500;
+//    public static int l12 = 50500;
+//    public static int l13 = 55500;
+//    public static int l14 = 60500;
+    public static double RAMPING_ERROR = 5000;
+
+
+    public static int[] liftLevels = {0,4800,7300,13000,18000,23000,28000,33000,38000,36500,40500,45500,50500,55500,60500};
     private double[] liftTimes = {0, 0.5, 0.6, 0.7, 0.8, 0.9, 
                                     1.0, 1.1, 1.2, 1.3,1.4,1.5,1.6,1.7,1.8,1.9,2.0};
     final static int MAX_HEIGHT = 14;
@@ -67,6 +86,11 @@ public class Glide {
 
     private Servo arm = null;
     private Servo claw = null;
+    public static double ARM_UP = 0.79;
+    public static double ARM_DOWN = 0.13;
+    public static double CLAW_GRAB = 0.174;
+    public static double CLAW_RELEASE = 0.69;
+
     
     private DistanceSensor lalign = null;
     private DistanceSensor stonedist = null;
@@ -100,7 +124,7 @@ public class Glide {
     
     // Encoder Constants
     private final double TRACK_TICKS = 2332;
-    private final double TICKS_PER_INCH = 196.75; //prev 190.a0
+    private final double TICKS_PER_INCH = 1142.1815; //prev 190.a0
     public final int DISPLAY_ODOMETRY = 0x0001;
     public final int DISPLAY_IMU = 0x0002;
     public final int DISPLAY_LIFT = 0x0004;
@@ -170,7 +194,7 @@ public class Glide {
         lift1.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         lift2.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         
-        lift = new ArrayMotor(lift1, lift2, rf, elevatorLimit);
+        lift = new ArrayMotor(lift1, lift2, lift1, elevatorLimit);
         //accommodate for recent change
         for(int i = 0; i < liftLevels.length; i++)
             liftLevels[i] = (int) Math.round(liftLevels[i]);
@@ -212,6 +236,18 @@ public class Glide {
         lb.setPower(lpower);
         rb.setPower(rpower);
     }
+    public void motorPosTemp(Telemetry t) {
+        t.addData("rf", rf.getCurrentPosition());
+        t.addData("rb", rb.getCurrentPosition());
+        t.addData("lb", lb.getCurrentPosition());
+        t.addData("lf", lf.getCurrentPosition());
+        t.addData("lift2", lift2.getCurrentPosition());
+        t.addData("lift1", lift1.getCurrentPosition());
+        t.addData("lin", lin.getCurrentPosition());
+        t.addData("rin", rin.getCurrentPosition());
+        t.update();
+
+    }
     
     public void resetEncoders() {
         lf.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
@@ -234,6 +270,7 @@ public class Glide {
             t.addData("right.pos", this.rightPos());
             t.addData("encHeading", encHeading);
             t.addData("strafe.pos", this.strafePos());
+            t.addData("getDist", getDist());
         }
         if ((display & DISPLAY_IMU) != 0) {
             t.addData("imuHeading", imuHeading);
@@ -282,7 +319,7 @@ public class Glide {
     }
 
     public void displayStatus(Telemetry t) {
-        this.addTelemetryData(t, DISPLAY_INTAKE );
+        this.addTelemetryData(t, DISPLAY_ODOMETRY );
         t.update();
     }
     
@@ -298,15 +335,15 @@ public class Glide {
 
     // Encoder Methods
     private int leftPos() {
-        return lf.getCurrentPosition();
+        return lift2.getCurrentPosition();
     }
     
     private int rightPos() {
-        return rf.getCurrentPosition();
+        return -1*lift1.getCurrentPosition();
     }
     
     private int strafePos() {
-        return rb.getCurrentPosition();
+        return lin.getCurrentPosition();
     }
     
     public void updatePosition() {
@@ -316,8 +353,8 @@ public class Glide {
         int currLeft = this.leftPos();
         int currRight = this.rightPos();
         int headingDelta = (currRight - rEncStart) - (currLeft - lEncStart);
-        
-        
+
+
         encHeading = Math.toDegrees(headingDelta/TRACK_TICKS);
     }
     
@@ -353,13 +390,15 @@ public class Glide {
         resetStartDist();
         double rxp = rx;
         double ryp = ry;
+
         while (o.opModeIsActive()) {
             if (Math.abs(this.getDist()) > dist) break;
             if (clock.seconds() >= stoptime) break;
-            int error = this.getDist() - dist;
-            if(error < 2000) {
-                // rxp = rx * 0.9;
-                ryp = ry * 0.9;
+            int error = Math.abs(this.getDist() - dist);
+            if(error < RAMPING_ERROR) {
+                double ramp = .7/RAMPING_ERROR*error + 0.3;
+                rxp = rx * ramp;
+                ryp = ry * ramp;
             }
             this.rmoveXYH(rxp, ryp, rh);
             this.update();
@@ -553,6 +592,9 @@ public class Glide {
     public boolean isGantryIdle() {
         return (clock.seconds() > gantryLock);
     }
+    public boolean isGrabReady() {
+        return(clock.seconds()+.37 > gantryLock);
+    }
     
     public void setGantry(double pos) {
         gantryLock = clock.seconds() + .75;
@@ -583,11 +625,37 @@ public class Glide {
     
     // CAPSTONE
     
-    public void setCapstone(double pow) {
-        //pow = Range.clip(pow,0,1);
+    public void capstonePower(double pow) {
         cap.setPosition(pow);
     }
 
+    // CLAW AND ARM
+
+    public void setClaw(double pos) {
+        pos = Range.clip(pos,0,1);
+        claw.setPosition(pos);
+    }
+
+    public void setArm(double pos) {
+        pos = Range.clip(pos,0,1);
+        arm.setPosition(pos);
+    }
+
+    public void armUp() {
+        setArm(ARM_UP);
+    }
+
+    public void armDown() {
+        setArm(ARM_DOWN);
+    }
+
+    public void clawGrab() {
+        setClaw(CLAW_GRAB);
+    }
+
+    public void clawRelease() {
+        setClaw(CLAW_RELEASE);
+    }
     //AUTO CODE
     
     public void setAuto(Auto state) {
@@ -607,6 +675,7 @@ public class Glide {
                 }
                 break;
             case HOME:
+                if (isGrabReady()) grabBlock();
                 if (isGantryIdle()) {
                     setLiftLevel(0);
                     setAuto(Auto.IDLE);
@@ -638,7 +707,7 @@ public class Glide {
     }
     
     public void update() {
-        // updatePosition();
+         updatePosition();
         updateAuto();
         stoneUpdate();
         inUpdate();

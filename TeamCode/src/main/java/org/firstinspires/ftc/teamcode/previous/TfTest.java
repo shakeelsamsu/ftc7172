@@ -1,4 +1,5 @@
 package org.firstinspires.ftc.teamcode.previous;
+import com.acmerobotics.dashboard.config.Config;
 import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
@@ -44,7 +45,7 @@ import org.firstinspires.ftc.robotcore.external.navigation.VuforiaTrackable;
 import org.firstinspires.ftc.robotcore.external.navigation.VuforiaTrackableDefaultListener;
 import org.firstinspires.ftc.robotcore.external.navigation.VuforiaTrackables;
 import org.firstinspires.ftc.robotcore.external.navigation.VuforiaSkyStone;
-
+@Config
 @Autonomous
 public class TfTest extends LinearOpMode {
     private static final String TFOD_MODEL_ASSET = "Skystone.tflite";
@@ -65,7 +66,9 @@ public class TfTest extends LinearOpMode {
     private int[] sampleStrafe = {-4,0,8};
     private int TRAVEL = 76;
     private double SAMPLE_HEADING = 25.5;
-    Glide bot;
+    Glide bot = new Glide();
+
+    public static double STRAFE_1 = 19.05;
     
     private VuforiaLocalizer vuforia;
     private TFObjectDetector tfod;
@@ -83,6 +86,7 @@ public class TfTest extends LinearOpMode {
         } else {
             telemetry.addData("Sorry!", "This device is not compatible with TFOD");
         }
+        bot.init(hardwareMap);
         
         // while(!isStopRequested()) {
             
@@ -96,7 +100,7 @@ public class TfTest extends LinearOpMode {
         telemetry.update();
         //waitForStart();
         int pos = 1;
-        while (!isStopRequested()) {
+        while (!opModeIsActive()) {
             if (getSkystone()) {
                 if (stoneHeading < -10) pos = 0;
                 else if (stoneHeading > 10) pos = 2;
@@ -150,11 +154,12 @@ public class TfTest extends LinearOpMode {
                 }
             }
             telemetry.update();
-            
-            
         }
         tfod.shutdown();
-      
+//        bot.resetEncoders();
+//        bot.armDown();
+//        bot.driveXYHInch(this,0.8,.2, 0, STRAFE_1,10,telemetry);
+
         if (tfod != null) {
             tfod.shutdown();
         }

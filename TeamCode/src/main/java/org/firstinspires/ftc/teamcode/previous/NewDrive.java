@@ -1,5 +1,6 @@
 package org.firstinspires.ftc.teamcode.previous;
 
+import com.acmerobotics.dashboard.config.Config;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.util.Range;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
@@ -10,7 +11,7 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 
 
 @TeleOp
-
+@Config
 public class NewDrive extends LinearOpMode {
     boolean lastX = false;
     boolean foundation = true;
@@ -20,7 +21,8 @@ public class NewDrive extends LinearOpMode {
     int liftCounter = 0;
     boolean lastLiftUp = false;
     boolean lastLiftDown = false;
-
+    boolean ungrab = false;
+    public static double CAP_POWER = .5;
     @Override
     public void runOpMode() {
         
@@ -46,6 +48,10 @@ public class NewDrive extends LinearOpMode {
             double inPower = 0;
             if(gpad.right_trigger > 0.5) {
                 inPower = 1;
+                if (ungrab) {
+                    bot.letGo();
+                    ungrab = false;
+                }
                 bot.cancel();
             }
             if(gpad.right_stick_button) {
@@ -54,7 +60,6 @@ public class NewDrive extends LinearOpMode {
             }
             bot.inPower(inPower);
             bot.update();
-            // bot.displayStatus(telemetry);
             
             // MANUAL LIFT
             double liftPower = 0;
@@ -94,10 +99,8 @@ public class NewDrive extends LinearOpMode {
                     bot.setAuto(Glide.Auto.LIFT);
                 }
                 else {
-                    // bot.setAuto(Glide.Auto.HOME);
-                    // if (lastY) bot.setGantry(bot.GANTRY_EXTEND);
-                    bot.grabBlock();
                     bot.setGantry(bot.GANTRY_RETRACT);
+                    ungrab = true;
                     bot.setAuto(Glide.Auto.HOME);
                 }
             }
@@ -109,25 +112,29 @@ public class NewDrive extends LinearOpMode {
             // double gantryPower = 0;
             // double grabPower = 0;
             if(gpad.right_bumper) {
+                bot.armDown();
                 // bot.moveGantry(-.01);
-                bot.setGantry(bot.GANTRY_EXTEND);
+                //bot.setGantry(bot.GANTRY_EXTEND);
                 bot.cancel();
             }
             if(gpad.left_bumper) {
+                bot.armUp();
                 // bot.moveGantry(.01);
-                bot.setGantry(bot.GANTRY_RETRACT);
+                //bot.setGantry(bot.GANTRY_RETRACT);
                 bot.cancel();
             }
             
             // GRAB
             
             if (gpad.b) {
-                bot.letGo();
+                bot.clawGrab();
+                //bot.letGo();
             //   bot.moveGrab(-0.01);
                 bot.cancel();
             }
             if (gpad.a) {
-                bot.grabBlock();
+                bot.clawRelease();
+                //bot.grabBlock();
                 // bot.moveGrab(-0.005);
                 bot.cancel();
             }
@@ -145,10 +152,10 @@ public class NewDrive extends LinearOpMode {
             // if(gan) bot.setGantry(bot.GANTRY_EXTEND);
             // else bot.setGantry(bot.GANTRY_RETRACT);
             
-            // //capstone
-            // double capPow = .1;
-            // if (gpad.back) capPow = 1;
-            // bot.setCapstone(capPow);
+             //capstone
+             double capPow = 0;
+             if (gpad.left_trigger>0.5) capPow = CAP_POWER;
+             bot.capstonePower(capPow);
             
 
         }

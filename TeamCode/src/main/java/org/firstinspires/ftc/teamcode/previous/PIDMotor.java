@@ -43,7 +43,7 @@ public class PIDMotor {
     }
     
     public int getCurrentPosition() {
-        return liftEnc.getCurrentPosition();
+        return -1*liftEnc.getCurrentPosition();
     }
     
     public double getPower() {

@@ -37,7 +37,7 @@ public class DriveConstants {
      * MOTOR_VELO_PID with the tuned coefficients from DriveVelocityPIDTuner.
      */
     public static final boolean RUN_USING_ENCODER = true;
-    public static final PIDCoefficients MOTOR_VELO_PID = new PIDCoefficients(20, 5, 15);
+    public static final PIDCoefficients MOTOR_VELO_PID = new PIDCoefficients(20, 5, 0);
 
     /*
      * These are physical constants that can be determined from your robot (including the track
@@ -49,7 +49,7 @@ public class DriveConstants {
      */
     public static double WHEEL_RADIUS = 1.9685;
     public static double GEAR_RATIO = 1.25; // output (wheel) speed / input (motor) speed
-    public static double TRACK_WIDTH = 12.275;
+    public static double TRACK_WIDTH = 12.43;
 
     /*
      * These are the feedforward parameters used to model the drive motor behavior. If you are using
@@ -57,9 +57,9 @@ public class DriveConstants {
      * motor encoders or have elected not to use them for velocity control, these values should be
      * empirically tuned.
      */
-    public static double kV = 1.0 / rpmToVelocity(getMaxRpm());
-    public static double kA = 0.0;
-    public static double kStatic = 0;
+    public static double kV =  0.01353;//1.0 / rpmToVelocity(getMaxRpm());
+    public static double kA = 0.0001;
+    public static double kStatic = 0.074;
 
     /*
      * These values are used to generate the trajectories for you robot. To ensure proper operation,
