@@ -108,33 +108,30 @@ public class NewDrive extends LinearOpMode {
             
             
             // GANTRY
-            
-            // double gantryPower = 0;
-            // double grabPower = 0;
             if(gpad.right_bumper) {
-                bot.armDown();
-                // bot.moveGantry(-.01);
-                //bot.setGantry(bot.GANTRY_EXTEND);
+                //bot.armDown();
+                //bot.moveGantry(-.01);
+                bot.setGantry(bot.GANTRY_EXTEND);
                 bot.cancel();
             }
             if(gpad.left_bumper) {
-                bot.armUp();
-                // bot.moveGantry(.01);
-                //bot.setGantry(bot.GANTRY_RETRACT);
+                //bot.armUp();
+                 //bot.moveGantry(.01);
+                bot.setGantry(bot.GANTRY_RETRACT);
                 bot.cancel();
             }
             
             // GRAB
             
             if (gpad.b) {
-                bot.clawGrab();
-                //bot.letGo();
+                //bot.clawGrab();
+                bot.letGo();
             //   bot.moveGrab(-0.01);
                 bot.cancel();
             }
             if (gpad.a) {
-                bot.clawRelease();
-                //bot.grabBlock();
+                //bot.clawRelease();
+                bot.grabBlock();
                 // bot.moveGrab(-0.005);
                 bot.cancel();
             }
