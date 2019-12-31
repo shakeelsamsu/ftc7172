@@ -156,9 +156,6 @@ public class TfTest extends LinearOpMode {
             telemetry.update();
         }
         tfod.shutdown();
-//        bot.resetEncoders();
-//        bot.armDown();
-//        bot.driveXYHInch(this,0.8,.2, 0, STRAFE_1,10,telemetry);
 
         if (tfod != null) {
             tfod.shutdown();

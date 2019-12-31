@@ -4,6 +4,7 @@ import com.acmerobotics.dashboard.config.Config;
 import com.acmerobotics.roadrunner.geometry.Pose2d;
 import com.acmerobotics.roadrunner.geometry.Vector2d;
 import com.acmerobotics.roadrunner.path.LineSegment;
+import com.acmerobotics.roadrunner.path.PathBuilder;
 import com.acmerobotics.roadrunner.path.heading.ConstantInterpolator;
 import com.acmerobotics.roadrunner.trajectory.Trajectory;
 import com.acmerobotics.roadrunner.trajectory.TrajectoryGenerator;
@@ -43,7 +44,15 @@ public class TrajectoryTest extends LinearOpMode {
                 Math.toRadians(180.0), Math.toRadians(180.0), 0.0
         );
         Trajectory traj = tg.generateTrajectory(strafetest, constraints);
-
-        drive.followTrajectorySync(traj);
+//        drive.followTrajectorySync(
+//                drive.trajectoryBuilder()
+//                        .strafeRight(20.0)
+//                        .build()
+//        );
+        Pose2d poseEstimate = drive.getPoseEstimate();
+        telemetry.addData("x", poseEstimate.getX());
+        telemetry.addData("y", poseEstimate.getY());
+        telemetry.addData("heading", poseEstimate.getHeading());
+        telemetry.update();
     }
 }
