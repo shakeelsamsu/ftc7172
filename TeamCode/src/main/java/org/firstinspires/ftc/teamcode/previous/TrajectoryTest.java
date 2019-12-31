@@ -21,6 +21,7 @@ import org.firstinspires.ftc.teamcode.drive.mecanum.SampleMecanumDriveREVOptimiz
 public class TrajectoryTest extends LinearOpMode {
     public static double XD = 0;
     public static double YD = 20;
+    public static TrajectoryGenerator tg = TrajectoryGenerator.INSTANCE;
 
     @Override
     public void runOpMode() {
@@ -35,7 +36,7 @@ public class TrajectoryTest extends LinearOpMode {
                 50.0, 45.0, 0.0,
                 Math.toRadians(180.0), Math.toRadians(180.0), 0.0
         );
-        Trajectory traj = TrajectoryGenerator.generateTrajectory(strafetest, constraints);
+        Trajectory traj = tg.generateTrajectory(strafetest, constraints);
 
         drive.followTrajectorySync(traj);
     }
