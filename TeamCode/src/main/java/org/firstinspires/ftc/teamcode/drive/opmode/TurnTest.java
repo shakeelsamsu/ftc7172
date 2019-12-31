@@ -11,6 +11,7 @@ import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
 import org.firstinspires.ftc.teamcode.drive.mecanum.SampleMecanumDriveBase;
 import org.firstinspires.ftc.teamcode.drive.mecanum.SampleMecanumDriveREV;
+import org.firstinspires.ftc.teamcode.drive.mecanum.SampleMecanumDriveREVOptimized;
 
 /*
  * This is a simple routine to test turning capabilities.
@@ -22,7 +23,8 @@ public class TurnTest extends LinearOpMode {
     private BNO055IMU imu = null;
     @Override
     public void runOpMode() throws InterruptedException {
-        SampleMecanumDriveBase drive = new SampleMecanumDriveREV(hardwareMap);
+        SampleMecanumDriveBase drive = new SampleMecanumDriveREVOptimized(hardwareMap);
+
 
         BNO055IMU.Parameters params = new BNO055IMU.Parameters();
         params.angleUnit = BNO055IMU.AngleUnit.DEGREES;
