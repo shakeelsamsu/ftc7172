@@ -102,9 +102,9 @@ public class TfTest extends LinearOpMode {
         int pos = 1;
         while (!opModeIsActive()) {
             if (getSkystone()) {
-                if (stoneHeading < -10) pos = 0;
-                else if (stoneHeading > 10) pos = 2;
-                else pos = 1;
+                if (stoneHeading < -10) pos = 1;
+                else if (stoneHeading > 10) pos = 3;
+                else pos = 2;
             }
             if (gamepad1.y) stones = 2;
             if (gamepad1.a) stones = 1;
