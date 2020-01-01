@@ -27,8 +27,8 @@ import org.yaml.snakeyaml.scanner.Constant;
 @Autonomous
 @Config
 public class TrajectoryTest extends LinearOpMode {
-    private static Trajectories traj = new Trajectories();
-    private static TrajectoryGenerator tg = TrajectoryGenerator.INSTANCE;
+//    private static Trajectories traj = new Trajectories();
+//    private static TrajectoryGenerator tg = TrajectoryGenerator.INSTANCE;
     ElapsedTime timer = new ElapsedTime();
     private Servo arm = null;
     private Servo claw = null;
@@ -50,49 +50,165 @@ public class TrajectoryTest extends LinearOpMode {
         waitForStart();
         armDown();
         clawRelease();
-        drive.followTrajectorySync(traj.middleStone);
-        clawGrab();
-        delay(2);
-        armUp();
-        delay(1);
-        drive.setPoseEstimate(new Pose2d(0,0,0 ));
+        drive.setPoseEstimate(new Pose2d(-36,-63,Math.PI));
         drive.followTrajectorySync(
                 drive.trajectoryBuilder()
-                        .strafeLeft(2)
+                .strafeTo(new Vector2d(-36, -32))
+                .build()
+        );
+        clawGrab();
+        delay(.65);         // pickup 1
+        armUp();
+        drive.followTrajectorySync(
+                drive.trajectoryBuilder()
+                .strafeTo(new Vector2d(-36, -40))
+                .build()
+        );
+        clawRelease();
+        // head to foundation 1
+        drive.followTrajectorySync(
+                drive.trajectoryBuilder()
+                .reverse()
+                .lineTo(new Vector2d(0,-37))
+                .lineTo(new Vector2d(40, -27))
+                .build()
+        );
+//        drive.followTrajectorySync(
+//                drive.trajectoryBuilder()
+//                .reverse()
+//                .splineTo(new Pose2d(0,-37,Math.PI))
+//                .splineTo(new Pose2d(45, -27, Math.PI))
+//                .build()
+//        );
+        armDown();
+        delay(0.6);// deposit
+        armUp();
+        //head back 1
+        drive.followTrajectorySync(
+                drive.trajectoryBuilder()
+                        .lineTo(new Vector2d(0,-37))
+                        .lineTo(new Vector2d(-36, -40))
                         .build()
         );
-        drive.turnSync(Math.toRadians(-6));
+        armDown();
+        drive.followTrajectorySync(
+                drive.trajectoryBuilder()
+                .lineTo(new Vector2d(-60,-40))
+                .strafeTo(new Vector2d(-60, -32))
+                .build()
+        );
+        clawGrab();
+        delay(0.6); //grab stone 2
+        armUp();
+        drive.followTrajectorySync(
+                drive.trajectoryBuilder()
+                .strafeTo(new Vector2d(-60,-40))
+                        .build()
+        );
         clawRelease();
         drive.followTrajectorySync(
                 drive.trajectoryBuilder()
-                .back(75)
-                .build()
+                        .reverse()
+                        .lineTo(new Vector2d(0,-37))
+                .lineTo(new Vector2d(40,-27))
+                        .build()
+
         );
         armDown();
-        delay(0.7);
-        armUp();
         delay(0.6);
+        armUp();
+        drive.followTrajectorySync(
+                drive.trajectoryBuilder()
+                        .lineTo(new Vector2d(0,-37))
+                        .lineTo(new Vector2d(-36, -40))
+                        .build()
+        );
         armDown();
         drive.followTrajectorySync(
                 drive.trajectoryBuilder()
-                .strafeLeft(2)
-                .build()
+                        .lineTo(new Vector2d(-44,-40))
+                        .strafeTo(new Vector2d(-44, -32))
+                        .build()
+        );
+        clawGrab();
+        delay(0.6);
+        armUp();
+        drive.followTrajectorySync(
+                drive.trajectoryBuilder()
+                        .strafeTo(new Vector2d(-44,-40))
+                        .build()
         );
         drive.followTrajectorySync(
                 drive.trajectoryBuilder()
-                .forward(83)
-                .build()
+                        .reverse()
+                        .lineTo(new Vector2d(0,-37))
+                        .lineTo(new Vector2d(40,-27))
+                        .build()
+
         );
+        armDown();
+
+//        drive.followTrajectorySync(
+//                drive.trajectoryBuilder()
+//                .splineTo(new Pose2d(0,-43, Math.PI))
+//                .splineTo(new Pose2d(-54,-36,Math.PI))
+//                .build()
+//        );
+//        armDown();
+//        clawGrab();
+//        delay(0.6);
+//        armUp();
+
+
+        //NOT GLOBAL, LESS ACCURATE
+
+//        drive.followTrajectorySync(traj.middleStone);
+//        clawGrab();
+//        delay(2);
+//        armUp();
+//        delay(1);
+//        drive.setPoseEstimate(new Pose2d(0,0,0 ));
+//        drive.followTrajectorySync(
+//                drive.trajectoryBuilder()
+//                        .strafeLeft(2)
+//                        .build()
+//        );
+//        drive.turnSync(Math.toRadians(-6));
+//        clawRelease();
+//        drive.followTrajectorySync(
+//                drive.trajectoryBuilder()
+//                .back(75)
+//                .build()
+//        );
+//        armDown();
+//        delay(0.7);
+//        armUp();
+//        delay(0.6);
+//        armDown();
+//        drive.followTrajectorySync(
+//                drive.trajectoryBuilder()
+//                .strafeLeft(2)
+//                .build()
+//        );
+//        Pose2d currp= drive.getPoseEstimate();
+//        telemetry.addData("curr heading", currp.getHeading());
+//        telemetry.update();
+//        drive.turnSync(-currp.getHeading());
+//        drive.followTrajectorySync(
+//                drive.trajectoryBuilder()
+//                .forward(83)
+//                .build()
+//        );
 //        drive.turnSync(Math.toRadians(3));
 //        drive.followTrajectorySync(traj.intoStone);
 //        drive.followTrajectorySync(
 //                drive.trajectoryBuilder()
-//                        .strafeRight(2)
+//                        .strafeRight(1)
 //                        .build()
 //        );
-        clawGrab();
-        delay(0.6);
-        armUp();
+//        clawGrab();
+//        delay(0.6);
+//        armUp();
         telemetry.addData("kill the","motors");
         telemetry.update();
     }
