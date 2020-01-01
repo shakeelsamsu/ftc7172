@@ -15,31 +15,75 @@ import org.firstinspires.ftc.teamcode.drive.DriveConstants;
 public class Trajectories {
     public static TrajectoryGenerator tg = TrajectoryGenerator.INSTANCE;
 
-    LineSegment line = new LineSegment(new Vector2d(0,0), new Vector2d(-2,-32));
-    LinearInterpolator interp = new LinearInterpolator(Math.toRadians(0),Math.toRadians(7.7));
-    PathSegment segment = new PathSegment(line, interp);
-    Path strafetest = new Path(segment);
-    public Trajectory middleStone = tg.generateTrajectory(strafetest, DriveConstants.BASE_CONSTRAINTS);
+    // these stone names will probably change
+    enum State {
+        MIDDLE_STONE,
+        FAR_STONE,
+        CLOSE_STONE,
+        TO_FOUNDATION,
+        INTO_STONE
+    }
 
-    LineSegment line2 = new LineSegment(new Vector2d(0,0), new Vector2d(-8,-31));
-    PathSegment segment2 = new PathSegment(line2, interp);
-    Path far = new Path(segment);
-    public Trajectory farStone = tg.generateTrajectory(far, DriveConstants.BASE_CONSTRAINTS);
+    private LineSegment line;
+    private LinearInterpolator lInterpolator;
+    private ConstantInterpolator cInterpolator;
+    private PathSegment segment;
+    private Path path;
 
-    LineSegment line3 = new LineSegment(new Vector2d(0,0), new Vector2d(8,-31));
-    PathSegment segment3 = new PathSegment(line3, interp);
-    Path close = new Path(segment3);
-    public Trajectory closeStone = tg.generateTrajectory(strafetest, DriveConstants.BASE_CONSTRAINTS);
+    public Trajectory getTrajectory(State s) {
+        switch(s) {
+            case MIDDLE_STONE:
+                line = new LineSegment(new Vector2d(0,0), new Vector2d(-2,-32));
+                lInterpolator = new LinearInterpolator(Math.toRadians(0),Math.toRadians(7.7));
+                segment = new PathSegment(line, lInterpolator);
+                path = new Path(segment);
+                return tg.generateTrajectory(path, DriveConstants.BASE_CONSTRAINTS);
+            case FAR_STONE:
+                line = new LineSegment(new Vector2d(0,0), new Vector2d(-8,-31));
+                lInterpolator = new LinearInterpolator(Math.toRadians(0),Math.toRadians(7.7));
+                segment = new PathSegment(line, lInterpolator);
+                path = new Path(segment);
+                return tg.generateTrajectory(path, DriveConstants.BASE_CONSTRAINTS);
+            case CLOSE_STONE:
+                line = new LineSegment(new Vector2d(0,0), new Vector2d(8,-31));
+                lInterpolator = new LinearInterpolator(Math.toRadians(0),Math.toRadians(7.7));
+                segment = new PathSegment(line, lInterpolator);
+                path = new Path(segment);
+                return tg.generateTrajectory(path, DriveConstants.BASE_CONSTRAINTS);
+            case TO_FOUNDATION:
+                line = new LineSegment(new Vector2d(0,0), new Vector2d(-20,0));
+                cInterpolator = new ConstantInterpolator(Math.toRadians(0));
+                segment = new PathSegment(line, cInterpolator);
+                path = new Path(segment);
+                return tg.generateTrajectory(path, DriveConstants.BASE_CONSTRAINTS);
+            case INTO_STONE:
+                line = new LineSegment(new Vector2d(0,0), new Vector2d(0,-2));
+                lInterpolator = new LinearInterpolator(Math.toRadians(0),Math.toRadians(-2));
+                segment = new PathSegment(line, lInterpolator);
+                path = new Path(segment);
+                return tg.generateTrajectory(path, DriveConstants.BASE_CONSTRAINTS);
+        }
+        return null;
+    }
 
-    LineSegment lin = new LineSegment(new Vector2d(0,0), new Vector2d(-20,0));
-    ConstantInterpolator inter = new ConstantInterpolator(Math.toRadians(0));
-    PathSegment segmen = new PathSegment(lin, inter);
-    Path away = new Path(segmen);
-    public Trajectory toFoundation = tg.generateTrajectory(strafetest, DriveConstants.BASE_CONSTRAINTS);
+    public LineSegment getLine() {
+        return line;
+    }
 
-    LineSegment lie = new LineSegment(new Vector2d(0,0), new Vector2d(0,-2));
-    LinearInterpolator intep = new LinearInterpolator(Math.toRadians(0),Math.toRadians(-2));
-    PathSegment segmet = new PathSegment(lie, intep);
-    Path strafetet = new Path(segmet);
-    public Trajectory intoStone = tg.generateTrajectory(strafetest, DriveConstants.BASE_CONSTRAINTS);
+    public LinearInterpolator getLInterpolator() {
+        return lInterpolator;
+    }
+
+    public ConstantInterpolator getCInterpolator() {
+        return cInterpolator;
+    }
+
+    public PathSegment getSegment() {
+        return segment;
+    }
+
+    public Path getPath() {
+        return path;
+    }
+
 }

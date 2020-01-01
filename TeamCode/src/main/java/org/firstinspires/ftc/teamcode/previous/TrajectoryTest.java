@@ -27,7 +27,7 @@ import org.yaml.snakeyaml.scanner.Constant;
 @Autonomous
 @Config
 public class TrajectoryTest extends LinearOpMode {
-    private static Trajectories traj = new Trajectories();
+    private static Trajectories trajectory = new Trajectories();
     private static TrajectoryGenerator tg = TrajectoryGenerator.INSTANCE;
     ElapsedTime timer = new ElapsedTime();
     private Servo arm = null;
@@ -50,7 +50,8 @@ public class TrajectoryTest extends LinearOpMode {
         waitForStart();
         armDown();
         clawRelease();
-        drive.followTrajectorySync(traj.middleStone);
+        Trajectory t = trajectory.getTrajectory(Trajectories.State.MIDDLE_STONE);
+        drive.followTrajectorySync(t);
         clawGrab();
         delay(2);
         armUp();
