@@ -87,13 +87,14 @@ public class Glide {
     private Servo arm = null;
     private Servo claw = null;
     public static double ARM_UP = 0.79;
-    public static double ARM_DOWN = 0.13;
-    public static double CLAW_GRAB = 0.174;
+    public static double ARM_DOWN = 0.2;
+    public static double CLAW_GRAB = 0.12;
     public static double CLAW_RELEASE = 0.69;
 
     
     private DistanceSensor lalign = null;
     private DistanceSensor stonedist = null;
+    private DistanceSensor autodist = null;
     final double STONE_DIST_BAR = 1.6;
     final double STONE_DIST_GRAB = 0.3;
     final double GRAB_WAIT = 0.75;
@@ -165,7 +166,6 @@ public class Glide {
         
         grab = hardwareMap.get(Servo.class, "grabber");
         gantry = hardwareMap.get(Servo.class, "gantry");
-        // convey = hardwareMap.get(Servo.class, "conveyor");
         bar = hardwareMap.get(Servo.class, "bar");
         foundation = hardwareMap.get(Servo.class, "foundation");
         cap = hardwareMap.get(Servo.class, "capstone");
@@ -176,6 +176,7 @@ public class Glide {
         lalign = hardwareMap.get(DistanceSensor.class, "ldist");
         stonedist = hardwareMap.get(DistanceSensor.class, "stonedist");
         elevatorLimit = hardwareMap.get(AnalogInput.class, "elevatorlimit");
+        autodist = hardwareMap.get(DistanceSensor.class, "autodist");
         
         lf.setDirection(DcMotor.Direction.REVERSE);
         rf.setDirection(DcMotor.Direction.FORWARD);
@@ -307,7 +308,7 @@ public class Glide {
         }
         if ((display & DISPLAY_ALIGN) != 0) {
             t.addData("lalign", lalign.getDistance(DistanceUnit.INCH));
-            t.addData("ralign", 0);//ralign.getDistance(DistanceUnit.INCH));
+            t.addData("autodist", autodist.getDistance(DistanceUnit.INCH));//ralign.getDistance(DistanceUnit.INCH));
         }
         if((display & DISPLAY_GENERAL) != 0) {
             t.addData("state", autoState);
@@ -319,7 +320,7 @@ public class Glide {
     }
 
     public void displayStatus(Telemetry t) {
-        this.addTelemetryData(t, DISPLAY_ODOMETRY );
+        this.addTelemetryData(t, DISPLAY_ALIGN );
         t.update();
     }
     

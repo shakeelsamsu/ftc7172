@@ -29,34 +29,35 @@ public class LocalizationTest extends LinearOpMode {
     public void runOpMode() throws InterruptedException {
         telemetry = new MultipleTelemetry(telemetry, FtcDashboard.getInstance().getTelemetry());
 
-        SampleMecanumDriveBase         drive = new SampleMecanumDriveREVOptimized(hardwareMap);
+        SampleMecanumDriveBase drive = new SampleMecanumDriveREVOptimized(hardwareMap);
 
 
         waitForStart();
 
         while (!isStopRequested()) {
-            Pose2d baseVel = new Pose2d(
-                    -gamepad1.left_stick_y,
-                    -gamepad1.left_stick_x,
-                    -gamepad1.right_stick_x
-            );
+//            Pose2d baseVel = new Pose2d(
+//                    -gamepad1.left_stick_y,
+//                    -gamepad1.left_stick_x,
+//                    -gamepad1.right_stick_x
+//            );
+//
+//            Pose2d vel;
+//            if (Math.abs(baseVel.getX()) + Math.abs(baseVel.getY()) + Math.abs(baseVel.getHeading()) > 1) {
+//                // re-normalize the powers according to the weights
+//                double denom = VX_WEIGHT * Math.abs(baseVel.getX())
+//                    + VY_WEIGHT * Math.abs(baseVel.getY())
+//                    + OMEGA_WEIGHT * Math.abs(baseVel.getHeading());
+//                vel = new Pose2d(
+//                    VX_WEIGHT * baseVel.getX(),
+//                    VY_WEIGHT * baseVel.getY(),
+//                    OMEGA_WEIGHT * baseVel.getHeading()
+//                ).div(denom);
+//            } else {
+//                vel = baseVel;
+//            }
+//
+//            drive.setDrivePower(vel);
 
-            Pose2d vel;
-            if (Math.abs(baseVel.getX()) + Math.abs(baseVel.getY()) + Math.abs(baseVel.getHeading()) > 1) {
-                // re-normalize the powers according to the weights
-                double denom = VX_WEIGHT * Math.abs(baseVel.getX())
-                    + VY_WEIGHT * Math.abs(baseVel.getY())
-                    + OMEGA_WEIGHT * Math.abs(baseVel.getHeading());
-                vel = new Pose2d(
-                    VX_WEIGHT * baseVel.getX(),
-                    VY_WEIGHT * baseVel.getY(),
-                    OMEGA_WEIGHT * baseVel.getHeading()
-                ).div(denom);
-            } else {
-                vel = baseVel;
-            }
-
-            drive.setDrivePower(vel);
 
             drive.update();
 

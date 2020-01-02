@@ -63,17 +63,9 @@ public class TfTest extends LinearOpMode {
     private int stoneBottom = 0;
     private int stoneTop = 0;
     private double stoneHeading = 0;
-    private int[] sampleStrafe = {-4,0,8};
-    private int TRAVEL = 76;
-    private double SAMPLE_HEADING = 25.5;
-    Glide bot = new Glide();
-
-    public static double STRAFE_1 = 19.05;
     
     private VuforiaLocalizer vuforia;
     private TFObjectDetector tfod;
-    ElapsedTime timer = new ElapsedTime();
-    WebcamName webcamName = null;
 
     int stones = 2;
 
@@ -86,7 +78,6 @@ public class TfTest extends LinearOpMode {
         } else {
             telemetry.addData("Sorry!", "This device is not compatible with TFOD");
         }
-        bot.init(hardwareMap);
         
         // while(!isStopRequested()) {
             

@@ -91,6 +91,22 @@ public class SampleMecanumDriveREVOptimized extends SampleMecanumDriveBase {
         return new PIDCoefficients(coefficients.p, coefficients.i, coefficients.d);
     }
 
+    public int getLF() {
+        return leftFront.getCurrentPosition();
+    }
+
+
+    public int getLB() {
+
+        return leftRear.getCurrentPosition();
+    }
+    public int getRF() {
+        return rightFront.getCurrentPosition();
+    }
+    public int getRB() {
+        return rightRear.getCurrentPosition();
+    }
+
     @Override
     public void setPIDCoefficients(DcMotor.RunMode runMode, PIDCoefficients coefficients) {
         for (ExpansionHubMotor motor : motors) {

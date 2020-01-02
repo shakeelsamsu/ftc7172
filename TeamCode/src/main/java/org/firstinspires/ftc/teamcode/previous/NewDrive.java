@@ -23,6 +23,7 @@ public class NewDrive extends LinearOpMode {
     boolean lastLiftDown = false;
     boolean ungrab = false;
     public static double CAP_POWER = .5;
+
     @Override
     public void runOpMode() {
         
@@ -109,28 +110,28 @@ public class NewDrive extends LinearOpMode {
             
             // GANTRY
             if(gpad.right_bumper) {
-//                bot.armDown();
+                bot.setArm(bot.ARM_DOWN);
                 //bot.moveGantry(-.01); NO
-                bot.setGantry(bot.GANTRY_EXTEND);
+//                bot.setGantry(bot.GANTRY_EXTEND);
                 bot.cancel();
             }
             if(gpad.left_bumper) {
-//                bot.armUp();
+                bot.setArm(bot.ARM_UP);
                  //bot.moveGantry(.01); no
-                bot.setGantry(bot.GANTRY_RETRACT);
+//                bot.setGantry(bot.GANTRY_RETRACT);
                 bot.cancel();
             }
             
             // GRAB
             
             if (gpad.b) {
-//                bot.clawGrab();
+//                bot.setClaw(CLAW_GRAB);
                 bot.letGo();
-            //   bot.moveGrab(-0.01); no
+//               bot.moveGrab(-0.01); no
                 bot.cancel();
             }
             if (gpad.a) {
-//                bot.clawRelease();
+//                bot.setClaw(CLAW_RELEASE);
                 bot.grabBlock();
 //                 bot.moveGrab(-0.005); no
                 bot.cancel();
