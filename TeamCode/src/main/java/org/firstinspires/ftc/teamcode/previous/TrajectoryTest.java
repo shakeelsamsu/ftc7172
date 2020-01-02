@@ -6,6 +6,7 @@ import com.acmerobotics.roadrunner.geometry.Vector2d;
 import com.acmerobotics.roadrunner.path.heading.ConstantInterpolator;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+import com.qualcomm.robotcore.hardware.DistanceSensor;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.Range;
@@ -18,6 +19,7 @@ import org.firstinspires.ftc.robotcore.external.ClassFactory;
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.VuforiaLocalizer.CameraDirection;
 import org.firstinspires.ftc.robotcore.external.navigation.VuforiaLocalizer;
 import org.firstinspires.ftc.robotcore.external.tfod.Recognition;
@@ -36,8 +38,11 @@ public class TrajectoryTest extends LinearOpMode {
     ElapsedTime timer = new ElapsedTime();
     private Servo arm = null;
     private Servo claw = null;
-    public static double ARM_UP = 0.79;
-    public static double ARM_DOWN = 0.18;
+    private DistanceSensor autodist = null;
+    public static double ARM_UP = 0.55;
+    public static double ARM_OVER = 0.18;
+    public static double ARM_IN = 0.79;
+    public static double ARM_GRAB = .12;
     public static double CLAW_GRAB = 0.12;
     public static double CLAW_RELEASE = 0.69;
     private static final String TFOD_MODEL_ASSET = "Skystone.tflite";
@@ -65,6 +70,7 @@ public class TrajectoryTest extends LinearOpMode {
         SampleMecanumDriveBase drive = new SampleMecanumDriveREVOptimized(hardwareMap);
         arm = hardwareMap.get(Servo.class, "arm");
         claw = hardwareMap.get(Servo.class, "claw");
+        autodist = hardwareMap.get(DistanceSensor.class, "autodist");
 //        Glide bot = new Glide();
 //        init(hardwareMap);
 //        initVuforia();
@@ -137,25 +143,13 @@ public class TrajectoryTest extends LinearOpMode {
 //        }
 
         waitForStart();
-//        drive.setPoseEstimate(new Pose2d(0,0,0));
-//        drive.followTrajectorySync(
-//                drive.trajectoryBuilder()
-//                .splineTo(new Pose2d(48,0,0))
-//                .build()
-//        );
-//        sleep(2000);
-//        drive.followTrajectorySync(
-//                drive.trajectoryBuilder()
-//                .splineTo(new Pose2d(0,0,0))
-//                .build()
-//        );
         drive.setPoseEstimate(new Pose2d(-36,-63,Math.PI));
         ConstantInterpolator interp = new ConstantInterpolator(Math.PI);
 
 
         drive.followStrafeSync(
                 drive.trajectoryBuilder()
-                .lineTo(new Vector2d(-36,-32),interp)
+                .lineTo(new Vector2d(-36,-35),interp)
                 .build()
         );
         strafeAndGrab(drive);
@@ -166,92 +160,17 @@ public class TrajectoryTest extends LinearOpMode {
                 .build()
         );
         launchStone(drive);
-        //drive.turnSync(drive.lastHeadingError);
-//        armDown();
-//        drive.followTrajectorySync(
-//                drive.trajectoryBuilder()
-//                .strafeLeft(6)
-//                .build()
-//        );
-
+        drive.followStrafeSync(
+                drive.trajectoryBuilder()
+                .splineTo(new Pose2d(-36-24,drive.getPoseEstimate().getY(), Math.PI))
+                .build()
+        );
+        while(!isStopRequested()) {
+            telemetry.addData("dist", autodist.getDistance(DistanceUnit.INCH));
+            telemetry.update();
+        }
         delay(10);
-//        armDown();
-//        clawRelease();
-//        drive.setPoseEstimate(new Pose2d(-36,-63,Math.PI));
-//        drive.followTrajectorySync(
-//                drive.trajectoryBuilder()
-//                        .strafeTo(new Vector2d(-38, -30))
-//                        .build()
-//        );
-//        clawGrab();
-//        delay(.65);         // pickup 1
-//        armUp();
-////        drive.followTrajectorySync(
-////                drive.trajectoryBuilder()
-////                .strafeLeft(4)
-////                .build()
-//        delay(0.6);
-//        clawRelease();
-//        // head to foundation 1
-//        drive.followTrajectorySync(
-//                drive.trajectoryBuilder()
-//                        .reverse()
-//                        .splineTo(new Pose2d(47.5,drive.getPoseEstimate().getY()-1,Math.PI))
-//                                                .build()
-//        );
-//        armDown();
-//        delay(0.5);
-//        armUp();
-//        //go back 1
-//        drive.followTrajectorySync(
-//                drive.trajectoryBuilder()
-//                .splineTo(new Pose2d(-36-24, drive.getPoseEstimate().getY()-2,Math.PI))
-//                .build()
-//        );
-//        armDown();
-//        drive.followTrajectorySync(
-//                drive.trajectoryBuilder()
-//                .strafeRight(4)
-//                .build()
-//        );
-//        clawGrab();
-//        delay(0.5); //pickup 2
-//        armUp();
-//        drive.followTrajectorySync(
-//                drive.trajectoryBuilder()
-//                .strafeLeft(4)
-//                        .build()
-//        );
-//        //head to foundation 2
-//        drive.followTrajectorySync(
-//                drive.trajectoryBuilder()
-//                        .reverse()
-//                        .splineTo(new Pose2d(50, drive.getPoseEstimate().getY()+3,Math.PI))
-//                .build()
-//        );
-//        clawRelease();
-//        delay(0.5);
-//        armDown();
-//        // go back 2
-//        drive.followTrajectorySync(
-//                drive.trajectoryBuilder()
-//                .splineTo(new Pose2d(-28, drive.getPoseEstimate().getY()-4,Math.PI))
-//                .build()
-//        );
-//        armDown();
-//        drive.followTrajectorySync(
-//                drive.trajectoryBuilder()
-//                .strafeRight(6)
-//                .build()
-//        );
-//        clawGrab();
-//        delay(0.5);
-//        armUp();
-//        drive.followTrajectorySync(
-//                drive.trajectoryBuilder()
-//                .strafeLeft(6)
-//                .build()
-//        );
+
         telemetry.addData("kill the","motors");
         telemetry.update();
     }
@@ -278,44 +197,40 @@ public class TrajectoryTest extends LinearOpMode {
     }
 
     private void launchStone(SampleMecanumDriveBase drive) {
+
+        drive.followStrafeSync(
+                drive.trajectoryBuilder()
+                .strafeRight(13)
+                .build()
+        );
+        clawRelease();
+        drive.followStrafeSync(
+                drive.trajectoryBuilder()
+                .strafeLeft(13)
+                .build()
+        );
+        armIn();
+    }
+
+    private void strafeAndGrab(SampleMecanumDriveBase drive) {
+        armOver();
         clawRelease();
         delay(0.2);
         drive.followStrafeSync(
                 drive.trajectoryBuilder()
-                .strafeRight(6)
+                .strafeRight(10)
                 .build()
         );
-        armDown();
-        delay(0.3);
-        drive.followStrafeSync(
-                drive.trajectoryBuilder()
-                .strafeLeft(6)
-                .build()
-        );
-        armUp();
-
-    }
-
-    private void strafeAndGrab(SampleMecanumDriveBase drive) {
-        armDown();
-        clawRelease();
-        drive.followStrafeSync(
-                drive.trajectoryBuilder()
-                .strafeRight(6)
-                .build()
-        );
-        delay(0.5);
+        armGrab();
+        delay(0.1);
         clawGrab();
         delay(0.5);
         armUp();
         drive.followStrafeSync(
                 drive.trajectoryBuilder()
-                .strafeLeft(6)
+                .strafeLeft(10)
                 .build()
         );
-        clawRelease();
-        delay(0.3);
-        clawGrab();
     }
 
     private boolean getSkystone() {
@@ -438,8 +353,12 @@ public class TrajectoryTest extends LinearOpMode {
         setArm(ARM_UP);
     }
 
-    public void armDown() {
-        setArm(ARM_DOWN);
+    public void armOver() {
+        setArm(ARM_OVER);
+    }
+
+    public void armGrab() {
+        setArm(ARM_GRAB);
     }
 
     public void clawGrab() {
@@ -448,5 +367,9 @@ public class TrajectoryTest extends LinearOpMode {
 
     public void clawRelease() {
         setClaw(CLAW_RELEASE);
+    }
+
+    public void armIn() {
+        setArm(ARM_IN);
     }
 }

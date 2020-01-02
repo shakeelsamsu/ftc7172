@@ -125,14 +125,14 @@ public class NewDrive extends LinearOpMode {
             // GRAB
             
             if (gpad.b) {
-//                bot.setClaw(CLAW_GRAB);
-                bot.letGo();
+                bot.setClaw(bot.CLAW_GRAB);
+//                bot.letGo();
 //               bot.moveGrab(-0.01); no
                 bot.cancel();
             }
             if (gpad.a) {
-//                bot.setClaw(CLAW_RELEASE);
-                bot.grabBlock();
+                bot.setClaw(bot.CLAW_RELEASE);
+//                bot.grabBlock();
 //                 bot.moveGrab(-0.005); no
                 bot.cancel();
             }
