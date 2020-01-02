@@ -22,6 +22,7 @@ import com.acmerobotics.roadrunner.profile.MotionProfileGenerator;
 import com.acmerobotics.roadrunner.profile.MotionState;
 import com.acmerobotics.roadrunner.trajectory.Trajectory;
 import com.acmerobotics.roadrunner.trajectory.TrajectoryBuilder;
+import com.acmerobotics.roadrunner.trajectory.TrajectoryGenerator;
 import com.acmerobotics.roadrunner.trajectory.constraints.DriveConstraints;
 import com.acmerobotics.roadrunner.trajectory.constraints.MecanumConstraints;
 import com.acmerobotics.roadrunner.util.NanoClock;
@@ -38,13 +39,14 @@ import java.util.List;
 @Config
 public abstract class SampleMecanumDriveBase extends MecanumDrive {
     public static PIDCoefficients TRANSLATIONAL_PID = new PIDCoefficients(1, 0, 0.22);
-    public static PIDCoefficients HEADING_PID = new PIDCoefficients(2.5, 0, 0);
+    public static PIDCoefficients HEADING_PID = new PIDCoefficients(2.5, 0.1, 0);
 
 
     public enum Mode {
         IDLE,
         TURN,
-        FOLLOW_TRAJECTORY
+        FOLLOW_TRAJECTORY,
+        FOLLOW_STRAFE_TRAJ
     }
 
     private FtcDashboard dashboard;
@@ -58,9 +60,12 @@ public abstract class SampleMecanumDriveBase extends MecanumDrive {
 
     private DriveConstraints constraints;
     private TrajectoryFollower follower;
+    private TrajectoryFollower strafeFollower;
 
     private List<Double> lastWheelPositions;
     private double lastTimestamp;
+
+    public double lastHeadingError = 0;
 
     public SampleMecanumDriveBase() {
         super(kV, kA, kStatic, TRACK_WIDTH);
@@ -77,6 +82,7 @@ public abstract class SampleMecanumDriveBase extends MecanumDrive {
 
         constraints = new MecanumConstraints(BASE_CONSTRAINTS, TRACK_WIDTH);
         follower = new HolonomicPIDVAFollower(TRANSLATIONAL_PID, TRANSLATIONAL_PID, HEADING_PID);
+        strafeFollower = new HolonomicPIDVAFollower(TRANSLATIONAL_PID,TRANSLATIONAL_PID,new PIDCoefficients(15,0,.22));
     }
 
     public TrajectoryBuilder trajectoryBuilder() {
@@ -101,6 +107,16 @@ public abstract class SampleMecanumDriveBase extends MecanumDrive {
         waitForIdle();
     }
 
+    public void followStrafe(Trajectory trajectory) {
+        strafeFollower.followTrajectory(trajectory);
+        mode = Mode.FOLLOW_STRAFE_TRAJ;
+    }
+
+    public void followStrafeSync(Trajectory trajectory) {
+        followStrafe(trajectory);
+        waitForIdle();
+    }
+
     public void followTrajectory(Trajectory trajectory) {
         follower.followTrajectory(trajectory);
         mode = Mode.FOLLOW_TRAJECTORY;
@@ -119,6 +135,8 @@ public abstract class SampleMecanumDriveBase extends MecanumDrive {
                 return new Pose2d(0, 0, turnController.getLastError());
             case IDLE:
                 return new Pose2d();
+            case FOLLOW_STRAFE_TRAJ:
+                return strafeFollower.getLastError();
         }
         throw new AssertionError();
     }
@@ -128,7 +146,7 @@ public abstract class SampleMecanumDriveBase extends MecanumDrive {
 
         Pose2d currentPose = getPoseEstimate();
         Pose2d lastError = getLastError();
-
+        lastHeadingError =lastError.getHeading();
         TelemetryPacket packet = new TelemetryPacket();
         Canvas fieldOverlay = packet.fieldOverlay();
 
@@ -187,6 +205,29 @@ public abstract class SampleMecanumDriveBase extends MecanumDrive {
                 fieldOverlay.fillCircle(currentPose.getX(), currentPose.getY(), 3);
 
                 if (!follower.isFollowing()) {
+                    mode = Mode.IDLE;
+                    setDriveSignal(new DriveSignal());
+                }
+
+                break;
+            }
+            case FOLLOW_STRAFE_TRAJ: {
+                setDriveSignal(strafeFollower.update(currentPose));
+
+                Trajectory trajectory = strafeFollower.getTrajectory();
+
+                fieldOverlay.setStrokeWidth(1);
+                fieldOverlay.setStroke("4CAF50");
+                DashboardUtil.drawSampledPath(fieldOverlay, trajectory.getPath());
+
+                fieldOverlay.setStroke("#F44336");
+                double t = strafeFollower.elapsedTime();
+                DashboardUtil.drawRobot(fieldOverlay, trajectory.get(t));
+
+                fieldOverlay.setStroke("#3F51B5");
+                fieldOverlay.fillCircle(currentPose.getX(), currentPose.getY(), 3);
+
+                if (!strafeFollower.isFollowing()) {
                     mode = Mode.IDLE;
                     setDriveSignal(new DriveSignal());
                 }

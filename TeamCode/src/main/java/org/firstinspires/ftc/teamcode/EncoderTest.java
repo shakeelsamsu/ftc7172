@@ -53,10 +53,10 @@ public class EncoderTest extends LinearOpMode {
             telemetry.addData("rf", rf.getCurrentPosition());
             telemetry.addData("rb", rb.getCurrentPosition());
             telemetry.addData("lb", lb.getCurrentPosition());
-            telemetry.addData("lin", lin.getCurrentPosition());
-            telemetry.addData("rin", rin.getCurrentPosition());
-            telemetry.addData("lift", lift1.getCurrentPosition());
-            telemetry.addData("lift", lift2.getCurrentPosition());
+            telemetry.addData("lin (strafe)", lin.getCurrentPosition());
+            telemetry.addData("rin (none)", rin.getCurrentPosition());
+            telemetry.addData("lift1 (right)", lift1.getCurrentPosition());
+            telemetry.addData("lift2 (left)", lift2.getCurrentPosition());
             telemetry.update();
         }
     }

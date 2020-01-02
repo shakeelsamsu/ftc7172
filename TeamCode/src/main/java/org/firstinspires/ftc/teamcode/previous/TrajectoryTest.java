@@ -3,17 +3,9 @@ package org.firstinspires.ftc.teamcode.previous;
 import com.acmerobotics.dashboard.config.Config;
 import com.acmerobotics.roadrunner.geometry.Pose2d;
 import com.acmerobotics.roadrunner.geometry.Vector2d;
-import com.acmerobotics.roadrunner.path.LineSegment;
-import com.acmerobotics.roadrunner.path.PathBuilder;
 import com.acmerobotics.roadrunner.path.heading.ConstantInterpolator;
-import com.acmerobotics.roadrunner.path.heading.LinearInterpolator;
-import com.acmerobotics.roadrunner.trajectory.Trajectory;
-import com.acmerobotics.roadrunner.trajectory.TrajectoryGenerator;
-import com.acmerobotics.roadrunner.trajectory.constraints.DriveConstraints;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
-import com.acmerobotics.roadrunner.path.Path;
-import com.acmerobotics.roadrunner.path.PathSegment;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.Range;
@@ -30,12 +22,9 @@ import org.firstinspires.ftc.robotcore.external.navigation.VuforiaLocalizer.Came
 import org.firstinspires.ftc.robotcore.external.navigation.VuforiaLocalizer;
 import org.firstinspires.ftc.robotcore.external.tfod.Recognition;
 import org.firstinspires.ftc.robotcore.external.tfod.TFObjectDetector;
-import org.firstinspires.ftc.teamcode.drive.DriveConstants;
 import org.firstinspires.ftc.teamcode.drive.mecanum.SampleMecanumDriveBase;
 import org.firstinspires.ftc.teamcode.drive.mecanum.SampleMecanumDriveREVOptimized;
-import org.yaml.snakeyaml.scanner.Constant;
 
-import java.nio.ByteBuffer;
 import java.util.List;
 
 
@@ -148,21 +137,44 @@ public class TrajectoryTest extends LinearOpMode {
 //        }
 
         waitForStart();
-        drive.setPoseEstimate(new Pose2d(0,0,0));
-        drive.followTrajectorySync(
+//        drive.setPoseEstimate(new Pose2d(0,0,0));
+//        drive.followTrajectorySync(
+//                drive.trajectoryBuilder()
+//                .splineTo(new Pose2d(48,0,0))
+//                .build()
+//        );
+//        sleep(2000);
+//        drive.followTrajectorySync(
+//                drive.trajectoryBuilder()
+//                .splineTo(new Pose2d(0,0,0))
+//                .build()
+//        );
+        drive.setPoseEstimate(new Pose2d(-36,-63,Math.PI));
+        ConstantInterpolator interp = new ConstantInterpolator(Math.PI);
+
+
+        drive.followStrafeSync(
                 drive.trajectoryBuilder()
-                .splineTo(new Pose2d(48,0,0))
+                .lineTo(new Vector2d(-36,-32),interp)
                 .build()
         );
-        sleep(2000);
+        strafeAndGrab(drive);
         drive.followTrajectorySync(
                 drive.trajectoryBuilder()
-                .splineTo(new Pose2d(0,0,0))
+                .reverse()
+                .splineTo(new Pose2d(47.5, drive.getPoseEstimate().getY(), Math.PI))
                 .build()
         );
+        launchStone(drive);
+        //drive.turnSync(drive.lastHeadingError);
+//        armDown();
+//        drive.followTrajectorySync(
+//                drive.trajectoryBuilder()
+//                .strafeLeft(6)
+//                .build()
+//        );
 
-
-
+        delay(10);
 //        armDown();
 //        clawRelease();
 //        drive.setPoseEstimate(new Pose2d(-36,-63,Math.PI));
@@ -263,6 +275,47 @@ public class TrajectoryTest extends LinearOpMode {
         tfodParameters.minimumConfidence = 0.8;
         tfod = ClassFactory.getInstance().createTFObjectDetector(tfodParameters, vuforia);
         tfod.loadModelFromAsset(TFOD_MODEL_ASSET, LABEL_FIRST_ELEMENT, LABEL_SECOND_ELEMENT);
+    }
+
+    private void launchStone(SampleMecanumDriveBase drive) {
+        clawRelease();
+        delay(0.2);
+        drive.followStrafeSync(
+                drive.trajectoryBuilder()
+                .strafeRight(6)
+                .build()
+        );
+        armDown();
+        delay(0.3);
+        drive.followStrafeSync(
+                drive.trajectoryBuilder()
+                .strafeLeft(6)
+                .build()
+        );
+        armUp();
+
+    }
+
+    private void strafeAndGrab(SampleMecanumDriveBase drive) {
+        armDown();
+        clawRelease();
+        drive.followStrafeSync(
+                drive.trajectoryBuilder()
+                .strafeRight(6)
+                .build()
+        );
+        delay(0.5);
+        clawGrab();
+        delay(0.5);
+        armUp();
+        drive.followStrafeSync(
+                drive.trajectoryBuilder()
+                .strafeLeft(6)
+                .build()
+        );
+        clawRelease();
+        delay(0.3);
+        clawGrab();
     }
 
     private boolean getSkystone() {
