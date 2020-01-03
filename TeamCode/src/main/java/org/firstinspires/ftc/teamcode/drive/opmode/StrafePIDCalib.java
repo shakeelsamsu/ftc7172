@@ -1,7 +1,7 @@
 package org.firstinspires.ftc.teamcode.drive.opmode;
 
 import com.acmerobotics.dashboard.config.Config;
-import com.acmerobotics.roadrunner.geometry.Pose2d;
+import com.acmerobotics.roadrunner.trajectory.Trajectory;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
@@ -9,35 +9,26 @@ import org.firstinspires.ftc.teamcode.drive.mecanum.SampleMecanumDriveBase;
 import org.firstinspires.ftc.teamcode.drive.mecanum.SampleMecanumDriveREVOptimized;
 
 /*
- * This is an example of a more complex path to really test the tuning.
+ * This is a simple routine to test translational drive capabilities.
  */
 @Config
 @Autonomous(group = "drive")
-public class SplineTest extends LinearOpMode {
-    public static int XDELTA = 20;
-    public static int YDELTA = 40;
+public class StrafePIDCalib extends LinearOpMode {
+    public static double DISTANCE = 24;
+
     @Override
     public void runOpMode() throws InterruptedException {
         SampleMecanumDriveBase        drive = new SampleMecanumDriveREVOptimized(hardwareMap);
 
 
+        Trajectory trajectory = drive.trajectoryBuilder()
+                .strafeRight(DISTANCE)
+                .build();
+
         waitForStart();
 
         if (isStopRequested()) return;
 
-        drive.followTrajectorySync(
-                drive.trajectoryBuilder()
-                        .splineTo(new Pose2d(40, 20, 0))
-                        .build()
-        );
-
-        sleep(2000);
-
-        drive.followTrajectorySync(
-                drive.trajectoryBuilder()
-                        .reverse()
-                        .splineTo(new Pose2d(0, 0, 0))
-                        .build()
-        );
+        drive.followStrafeSync(trajectory);
     }
 }

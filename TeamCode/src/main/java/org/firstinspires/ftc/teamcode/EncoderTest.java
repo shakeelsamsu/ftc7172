@@ -4,6 +4,9 @@ import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DistanceSensor;
+
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 
 @Autonomous
 public class EncoderTest extends LinearOpMode {
@@ -16,6 +19,7 @@ public class EncoderTest extends LinearOpMode {
     DcMotor rin;
     DcMotor lift1;
     DcMotor lift2;
+    DistanceSensor autodist;
 
     @Override
     public void runOpMode() throws InterruptedException {
@@ -28,6 +32,7 @@ public class EncoderTest extends LinearOpMode {
         rin = hardwareMap.get(DcMotor.class, "rin");
         lift1 = hardwareMap.get(DcMotor.class, "lift1");
         lift2 = hardwareMap.get(DcMotor.class, "lift2");
+        autodist = hardwareMap.get(DistanceSensor.class, "autodist");
 
         lf.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         rf.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
@@ -57,6 +62,7 @@ public class EncoderTest extends LinearOpMode {
             telemetry.addData("rin (none)", rin.getCurrentPosition());
             telemetry.addData("lift1 (right)", lift1.getCurrentPosition());
             telemetry.addData("lift2 (left)", lift2.getCurrentPosition());
+            telemetry.addData("autodist", autodist.getDistance(DistanceUnit.INCH));
             telemetry.update();
         }
     }

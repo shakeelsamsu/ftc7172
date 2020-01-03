@@ -27,6 +27,10 @@ import com.acmerobotics.roadrunner.trajectory.constraints.DriveConstraints;
 import com.acmerobotics.roadrunner.trajectory.constraints.MecanumConstraints;
 import com.acmerobotics.roadrunner.util.NanoClock;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DistanceSensor;
+import com.qualcomm.robotcore.hardware.HardwareMap;
+
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.teamcode.util.DashboardUtil;
 
 import java.util.ArrayList;
@@ -40,6 +44,8 @@ import java.util.List;
 public abstract class SampleMecanumDriveBase extends MecanumDrive {
     public static PIDCoefficients TRANSLATIONAL_PID = new PIDCoefficients(1, 0, 0.22);
     public static PIDCoefficients HEADING_PID = new PIDCoefficients(2.5, 0.1, 0);
+    public static PIDCoefficients TRANSLATIONAL_PID_STRAFE = new PIDCoefficients(3.8, 0, .22);
+    public static PIDCoefficients HEADING_PID_STRAFE = new PIDCoefficients(15,0,.27);
 
 
     public enum Mode {
@@ -51,6 +57,8 @@ public abstract class SampleMecanumDriveBase extends MecanumDrive {
 
     private FtcDashboard dashboard;
     private NanoClock clock;
+
+    private DistanceSensor autodist = null;
 
     private Mode mode;
 
@@ -66,12 +74,15 @@ public abstract class SampleMecanumDriveBase extends MecanumDrive {
     private double lastTimestamp;
 
     public double lastHeadingError = 0;
+    public double lastAutoDist = 0;
 
-    public SampleMecanumDriveBase() {
+    public SampleMecanumDriveBase(HardwareMap hardwareMap) {
         super(kV, kA, kStatic, TRACK_WIDTH);
 
         dashboard = FtcDashboard.getInstance();
         dashboard.setTelemetryTransmissionInterval(25);
+
+        autodist = hardwareMap.get(DistanceSensor.class, "autodist");
 
         clock = NanoClock.system();
 
@@ -82,7 +93,9 @@ public abstract class SampleMecanumDriveBase extends MecanumDrive {
 
         constraints = new MecanumConstraints(BASE_CONSTRAINTS, TRACK_WIDTH);
         follower = new HolonomicPIDVAFollower(TRANSLATIONAL_PID, TRANSLATIONAL_PID, HEADING_PID);
-        strafeFollower = new HolonomicPIDVAFollower(TRANSLATIONAL_PID,TRANSLATIONAL_PID,new PIDCoefficients(15,0,.22));
+        strafeFollower = new HolonomicPIDVAFollower(TRANSLATIONAL_PID_STRAFE,TRANSLATIONAL_PID_STRAFE,HEADING_PID_STRAFE);
+
+
     }
 
     public TrajectoryBuilder trajectoryBuilder() {
@@ -105,6 +118,14 @@ public abstract class SampleMecanumDriveBase extends MecanumDrive {
     public void turnSync(double angle) {
         turn(angle);
         waitForIdle();
+    }
+
+    public double getAutoDistInstant() {
+        return autodist.getDistance(DistanceUnit.INCH);
+    }
+
+    public double getLastAutoDist() {
+        return lastAutoDist;
     }
 
     public void followStrafe(Trajectory trajectory) {
@@ -149,6 +170,9 @@ public abstract class SampleMecanumDriveBase extends MecanumDrive {
         lastHeadingError =lastError.getHeading();
         TelemetryPacket packet = new TelemetryPacket();
         Canvas fieldOverlay = packet.fieldOverlay();
+        double head = getExternalHeading();
+        if (head > 3) head -= Math.PI*2;
+        setPoseEstimate(new Pose2d(currentPose.getX(), currentPose.getY(), head));
 
         packet.put("mode", mode);
 
@@ -159,6 +183,12 @@ public abstract class SampleMecanumDriveBase extends MecanumDrive {
         packet.put("xError", lastError.getX());
         packet.put("yError", lastError.getY());
         packet.put("headingError", lastError.getHeading());
+//        double head = getExternalHeading();
+//        if (head > 3) head -= Math.PI*2;
+//        packet.put("IMU Heading", head+Math.PI);
+
+        double distTemp = autodist.getDistance(DistanceUnit.INCH);
+        if (distTemp < 11) lastAutoDist = distTemp;
 
         switch (mode) {
             case IDLE:

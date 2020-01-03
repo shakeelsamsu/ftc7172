@@ -43,6 +43,7 @@ public class TrajectoryTest extends LinearOpMode {
     public static double ARM_OVER = 0.18;
     public static double ARM_IN = 0.79;
     public static double ARM_GRAB = .12;
+    public static double ARM_DROP = 0.4;
     public static double CLAW_GRAB = 0.12;
     public static double CLAW_RELEASE = 0.69;
     private static final String TFOD_MODEL_ASSET = "Skystone.tflite";
@@ -146,25 +147,63 @@ public class TrajectoryTest extends LinearOpMode {
         drive.setPoseEstimate(new Pose2d(-36,-63,Math.PI));
         ConstantInterpolator interp = new ConstantInterpolator(Math.PI);
 
-
+        // pick up one
         drive.followStrafeSync(
                 drive.trajectoryBuilder()
-                .lineTo(new Vector2d(-36,-35),interp)
+                .lineTo(new Vector2d(-36,-42),interp)
                 .build()
         );
-        strafeAndGrab(drive);
+        strafeAndGrab(drive,8);
+
+        //go to foundation,  deposit, and comeback
         drive.followTrajectorySync(
                 drive.trajectoryBuilder()
                 .reverse()
-                .splineTo(new Pose2d(47.5, drive.getPoseEstimate().getY(), Math.PI))
+                .splineTo(new Pose2d(47.5, -42, Math.PI))
                 .build()
         );
-        launchStone(drive);
-        drive.followStrafeSync(
+        delay(0.5);
+        telemetry.addData("autodist",drive.getAutoDistInstant());
+        telemetry.update();
+        dropStone(drive,7);
+        drive.followTrajectorySync(
                 drive.trajectoryBuilder()
-                .splineTo(new Pose2d(-36-24,drive.getPoseEstimate().getY(), Math.PI))
+                .splineTo(new Pose2d(-36-24,-42, Math.PI))
                 .build()
         );
+
+        //pick up 2
+        strafeAndGrab(drive,drive.getLastAutoDist()-2);
+
+        // go to foundation deposit and comeback 2
+        drive.followTrajectorySync(
+                drive.trajectoryBuilder()
+                        .reverse()
+                .splineTo(new Pose2d(47.5, -42, Math.PI))
+                .build()
+        );
+        dropStone(drive,7);
+        drive.followTrajectorySync(
+                drive.trajectoryBuilder()
+                .splineTo(new Pose2d(-36+10,-42, Math.PI ))
+                .build()
+        );
+//
+//        //pick up 3
+        double sDist = drive.getLastAutoDist()-1;
+        telemetry.addData("a",sDist);
+        telemetry.update();
+        if (sDist > 14) sDist = 5;
+        strafeAndGrab(drive,sDist);
+
+        // go to foundation 3
+        drive.followTrajectorySync(
+                drive.trajectoryBuilder()
+                        .reverse()
+                .splineTo(new Pose2d(47.5+10,-42, Math.PI))
+                .build()
+        );
+        dropStone(drive, 7);
         while(!isStopRequested()) {
             telemetry.addData("dist", autodist.getDistance(DistanceUnit.INCH));
             telemetry.update();
@@ -196,39 +235,40 @@ public class TrajectoryTest extends LinearOpMode {
         tfod.loadModelFromAsset(TFOD_MODEL_ASSET, LABEL_FIRST_ELEMENT, LABEL_SECOND_ELEMENT);
     }
 
-    private void launchStone(SampleMecanumDriveBase drive) {
-
+    private void dropStone(SampleMecanumDriveBase drive, double offset) {
+        armDrop();
         drive.followStrafeSync(
                 drive.trajectoryBuilder()
-                .strafeRight(13)
+                .strafeRight(offset)
                 .build()
         );
         clawRelease();
         drive.followStrafeSync(
                 drive.trajectoryBuilder()
-                .strafeLeft(13)
+                .strafeLeft(offset)
                 .build()
         );
         armIn();
     }
 
-    private void strafeAndGrab(SampleMecanumDriveBase drive) {
+    private void strafeAndGrab(SampleMecanumDriveBase drive, double offset) {
         armOver();
         clawRelease();
         delay(0.2);
         drive.followStrafeSync(
                 drive.trajectoryBuilder()
-                .strafeRight(10)
+                .strafeRight(offset)
                 .build()
         );
         armGrab();
-        delay(0.1);
+        delay(0.3);
         clawGrab();
         delay(0.5);
         armUp();
+        if (offset < 6) offset = 6;
         drive.followStrafeSync(
                 drive.trajectoryBuilder()
-                .strafeLeft(10)
+                .strafeLeft(offset)
                 .build()
         );
     }
@@ -371,5 +411,9 @@ public class TrajectoryTest extends LinearOpMode {
 
     public void armIn() {
         setArm(ARM_IN);
+    }
+
+    public void armDrop() {
+        setArm(ARM_DROP);
     }
 }

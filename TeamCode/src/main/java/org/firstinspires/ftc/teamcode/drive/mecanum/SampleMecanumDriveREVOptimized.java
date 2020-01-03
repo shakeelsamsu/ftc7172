@@ -38,7 +38,7 @@ public class SampleMecanumDriveREVOptimized extends SampleMecanumDriveBase {
     private BNO055IMU imu;
 
     public SampleMecanumDriveREVOptimized(HardwareMap hardwareMap) {
-        super();
+        super(hardwareMap);
 
         LynxModuleUtil.ensureMinimumFirmwareVersion(hardwareMap);
 
@@ -97,7 +97,6 @@ public class SampleMecanumDriveREVOptimized extends SampleMecanumDriveBase {
 
 
     public int getLB() {
-
         return leftRear.getCurrentPosition();
     }
     public int getRF() {
