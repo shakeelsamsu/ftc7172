@@ -167,7 +167,7 @@ public abstract class SampleMecanumDriveBase extends MecanumDrive {
 
         Pose2d currentPose = getPoseEstimate();
         Pose2d lastError = getLastError();
-        lastHeadingError =lastError.getHeading();
+        lastHeadingError = lastError.getHeading();
         TelemetryPacket packet = new TelemetryPacket();
         Canvas fieldOverlay = packet.fieldOverlay();
         double head = getExternalHeading();
