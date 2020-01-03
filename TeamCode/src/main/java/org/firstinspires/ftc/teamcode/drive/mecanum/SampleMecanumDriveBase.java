@@ -37,9 +37,10 @@ import java.util.List;
  */
 @Config
 public abstract class SampleMecanumDriveBase extends MecanumDrive {
-    public static PIDCoefficients TRANSLATIONAL_PID = new PIDCoefficients(0, 0, 0);
-    public static PIDCoefficients HEADING_PID = new PIDCoefficients(0, 0, 0);
-
+    // 7172
+    public static PIDCoefficients AXIAL_PID = new PIDCoefficients(1, 0, 0.22);
+    public static PIDCoefficients LATERAL_PID = new PIDCoefficients(10, 0, 0);
+    public static PIDCoefficients HEADING_PID = new PIDCoefficients(5, 0, 0.1); // switched I to D
 
     public enum Mode {
         IDLE,
@@ -76,7 +77,7 @@ public abstract class SampleMecanumDriveBase extends MecanumDrive {
         turnController.setInputBounds(0, 2 * Math.PI);
 
         constraints = new MecanumConstraints(BASE_CONSTRAINTS, TRACK_WIDTH);
-        follower = new HolonomicPIDVAFollower(TRANSLATIONAL_PID, TRANSLATIONAL_PID, HEADING_PID);
+        follower = new HolonomicPIDVAFollower(AXIAL_PID, LATERAL_PID, HEADING_PID);
     }
 
     public TrajectoryBuilder trajectoryBuilder() {
