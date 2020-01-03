@@ -39,7 +39,7 @@ import java.util.List;
 public abstract class SampleMecanumDriveBase extends MecanumDrive {
     // 7172
     public static PIDCoefficients AXIAL_PID = new PIDCoefficients(1, 0, 0.22);
-    public static PIDCoefficients LATERAL_PID = new PIDCoefficients(10, 0, 0);
+    public static PIDCoefficients LATERAL_PID = new PIDCoefficients(0.5, 0, 0);
     public static PIDCoefficients HEADING_PID = new PIDCoefficients(5, 0, 0.1); // switched I to D
 
     public enum Mode {
