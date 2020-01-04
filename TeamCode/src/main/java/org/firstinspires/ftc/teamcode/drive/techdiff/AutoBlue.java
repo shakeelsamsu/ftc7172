@@ -4,16 +4,15 @@ import com.acmerobotics.dashboard.config.Config;
 import com.acmerobotics.roadrunner.geometry.Pose2d;
 import com.acmerobotics.roadrunner.geometry.Vector2d;
 import com.acmerobotics.roadrunner.path.heading.ConstantInterpolator;
+import com.acmerobotics.roadrunner.trajectory.Trajectory;
+import com.acmerobotics.roadrunner.trajectory.TrajectoryBuilder;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
-import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.teamcode.drive.mecanum.SampleMecanumDriveBase;
 import org.firstinspires.ftc.teamcode.drive.mecanum.SampleMecanumDriveREVOptimized;
-
-import kotlin.Unit;
 
 @Config
 @Autonomous
@@ -31,48 +30,83 @@ public class AutoBlue extends LinearOpMode {
     public static double ROTATE_SIDE = 0.47;
     public static double ROTATE_BACK = 0;
 
+    enum State {
+        TO_FOUNDATION,
+        TO_QUARRY
+    }
+
+    // probably going to use an array for positions eventually
+//    public static final double MIDDLE_STONE_X = -20;
+//    public static final double SKYSTONE_OFFSET = -28;
+    public static final double[] STONES_X = {-16, -22, -30, -38, -54, -62};
+
     private Servo rarm;
     private Servo rrotate;
     private Servo rclaw;
 
+    private SampleMecanumDriveBase drive;
+    private State state;
+
     public void runOpMode() {
         timer = new ElapsedTime();
-        SampleMecanumDriveBase drive = new SampleMecanumDriveREVOptimized(hardwareMap);
+        drive = new SampleMecanumDriveREVOptimized(hardwareMap);
         rarm = hardwareMap.get(Servo.class, "rarm");
         rrotate = hardwareMap.get(Servo.class, "rrotate");
         rclaw = hardwareMap.get(Servo.class, "rclaw");
+        int stonePos = 5;
         waitForStart();
         drive.setPoseEstimate(new Pose2d(-36, 63, 0));
         ConstantInterpolator interp = new ConstantInterpolator(0);
         setRotate(ROTATE_SIDE);
         setArm(ARM_OVER);
         setClaw(CLAW_RELEASE);
+
+        // First Pick-Up
         drive.followTrajectorySync(
                 drive.trajectoryBuilder()
                         //.reverse()
-                .strafeTo(new Vector2d(-20, 36))
+                .strafeTo(new Vector2d(STONES_X[stonePos], 36))
                 .build()//To(new Vector2d(36, -32)).build()
         );
-        strafeAndGrab(drive, 5);
+        strafeAndGrab(drive, 4.5);
         drive.update();
-        drive.followTrajectorySync(
-                drive.trajectoryBuilder()
 
-                .splineTo(new Pose2d(55, drive.getPoseEstimate().getY()),interp)
+        // Go to Foundation and Deposit 1
+//        drive.followTrajectorySync(
+//                drive.trajectoryBuilder()
+//                .splineTo(new Pose2d(55, drive.getPoseEstimate().getY()),interp)
+//                .build()
+//        );
+        state = State.TO_FOUNDATION;
+        followTrajectoryArmSync(
+                drive.trajectoryBuilder()
+                .splineTo(new Pose2d(55, drive.getPoseEstimate().getY()), interp)
                 .build()
         );
         deposit(drive,4.5);
         drive.update();
-        drive.followTrajectorySync(
+
+        // Go back and Second Pick-Up
+//        drive.followTrajectorySync(
+//                drive.trajectoryBuilder()
+//                    .reverse()
+//                    //.addMarker(new Vector2d(drive.getPoseEstimate().getX(), 12), () -> {setRotate(ROTATE_BACK); setClaw(CLAW_RELEASE); setArm(ARM_OVER); return Unit.INSTANCE;})
+//                    .splineTo(new Pose2d(STONES_X[stonePos + 3],drive.getPoseEstimate().getY()),interp)
+//                .build()
+//        );
+        state = State.TO_QUARRY;
+        followTrajectoryArmSync(
                 drive.trajectoryBuilder()
-                    .reverse()
-                    //.addMarker(new Vector2d(drive.getPoseEstimate().getX(), 12), () -> {setRotate(ROTATE_BACK); setClaw(CLAW_RELEASE); setArm(ARM_OVER); return Unit.INSTANCE;})
-                    .splineTo(new Pose2d(-20-28,drive.getPoseEstimate().getY()),interp)
-                .build()
+                        .reverse()
+                        .splineTo(new Pose2d(STONES_X[1],drive.getPoseEstimate().getY()),interp)
+                        .build()
         );
         strafeAndGrab(drive, 5);
         drive.update();
-        drive.followTrajectorySync(
+
+        // Head to Foundation and Deposit 2
+        state = State.TO_FOUNDATION;
+        followTrajectoryArmSync(
                 drive.trajectoryBuilder()
                 .splineTo(new Pose2d(60, drive.getPoseEstimate().getY(), 0))
                 .build()
@@ -80,6 +114,16 @@ public class AutoBlue extends LinearOpMode {
         deposit(drive,5);
         drive.update();
 
+        delay(1000);
+
+        // Go back and Third Pick-Up
+        drive.followTrajectorySync(
+                drive.trajectoryBuilder()
+                        .reverse()
+                        .splineTo(new Pose2d(STONES_X[0],drive.getPoseEstimate().getY()),interp)
+                        .build()
+        );
+        drive.update();
     }
     public void deposit(SampleMecanumDriveBase drive, double offset) {
         setRotate(ROTATE_SIDE);
@@ -89,6 +133,7 @@ public class AutoBlue extends LinearOpMode {
                 .build()
         );
         setClaw(CLAW_RELEASE);
+        delay(0.5);
         drive.followTrajectorySync(
                 drive.trajectoryBuilder()
                 .strafeLeft(offset)
@@ -111,8 +156,8 @@ public class AutoBlue extends LinearOpMode {
         setClaw(CLAW_GRAB);
         delay(0.3);
         setArm(ARM_DROP);
-        delay(0.4);
-        setRotate(ROTATE_BACK);
+//        delay(0.4);
+//        setRotate(ROTATE_BACK);
         drive.followTrajectorySync(
                 drive.trajectoryBuilder()
                 .strafeLeft(offset)
@@ -132,4 +177,32 @@ public class AutoBlue extends LinearOpMode {
         timer.reset();
         while (opModeIsActive() && timer.seconds() < time) {}
     }
+
+    // TODO: make state an argument, add a default case
+    public void followTrajectoryArmSync(Trajectory t) {
+        drive.followTrajectory(t);
+        while(!Thread.currentThread().isInterrupted() && drive.isBusy()) {
+            drive.update();
+            switch(state) {
+                case TO_FOUNDATION:
+                    if(drive.getPoseEstimate().getX() > -40)
+                        setRotate(ROTATE_BACK);
+                    break;
+                case TO_QUARRY:
+                    if(drive.getPoseEstimate().getX() > 15) {
+                        setClaw(CLAW_STOW);
+                        setArm(ARM_STOW);
+                        setRotate(ROTATE_SIDE);
+                    }
+                    if(drive.getPoseEstimate().getX() < -12) {
+                        setArm(ARM_OVER);
+                        setClaw(CLAW_RELEASE);
+                    }
+            }
+
+
+        }
+    }
+
+
 }
