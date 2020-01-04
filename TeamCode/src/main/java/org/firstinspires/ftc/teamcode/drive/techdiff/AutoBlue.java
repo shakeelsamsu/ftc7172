@@ -12,6 +12,9 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.teamcode.drive.mecanum.SampleMecanumDriveBase;
 import org.firstinspires.ftc.teamcode.drive.mecanum.SampleMecanumDriveREVOptimized;
+
+import kotlin.Unit;
+
 @Config
 @Autonomous
 public class AutoBlue extends LinearOpMode {
@@ -19,7 +22,7 @@ public class AutoBlue extends LinearOpMode {
     public static double ARM_STOW = 0.21;
     public static double ARM_GRAB = 0.7;
     public static double ARM_OVER = 0.67;
-    public static double ARM_DROP = 0.45;
+    public static double ARM_DROP = 0.35;
 
     public static double CLAW_STOW = 0.92;
     public static double CLAW_GRAB = 0.93;
@@ -50,18 +53,33 @@ public class AutoBlue extends LinearOpMode {
                 .strafeTo(new Vector2d(-20, 36))
                 .build()//To(new Vector2d(36, -32)).build()
         );
-        strafeAndGrab(drive, 4);
+        strafeAndGrab(drive, 5);
+        drive.update();
         drive.followTrajectorySync(
                 drive.trajectoryBuilder()
-                .splineTo(new Pose2d(55, 36),interp)
+
+                .splineTo(new Pose2d(55, drive.getPoseEstimate().getY()),interp)
                 .build()
         );
-        deposit(drive,6);
+        deposit(drive,4.5);
+        drive.update();
         drive.followTrajectorySync(
                 drive.trajectoryBuilder()
-                .splineTo(new Pose2d(-20-24,36))
+                    .reverse()
+                    //.addMarker(new Vector2d(drive.getPoseEstimate().getX(), 12), () -> {setRotate(ROTATE_BACK); setClaw(CLAW_RELEASE); setArm(ARM_OVER); return Unit.INSTANCE;})
+                    .splineTo(new Pose2d(-20-28,drive.getPoseEstimate().getY()),interp)
                 .build()
         );
+        strafeAndGrab(drive, 5);
+        drive.update();
+        drive.followTrajectorySync(
+                drive.trajectoryBuilder()
+                .splineTo(new Pose2d(60, drive.getPoseEstimate().getY(), 0))
+                .build()
+        );
+        deposit(drive,5);
+        drive.update();
+
     }
     public void deposit(SampleMecanumDriveBase drive, double offset) {
         setRotate(ROTATE_SIDE);
@@ -76,8 +94,13 @@ public class AutoBlue extends LinearOpMode {
                 .strafeLeft(offset)
                 .build()
         );
+        setArm(ARM_STOW);
+        setClaw(CLAW_STOW);
+
     }
     public void strafeAndGrab(SampleMecanumDriveBase drive, double offset) {
+        setArm(ARM_OVER);
+        setClaw(CLAW_RELEASE);
         drive.followTrajectorySync(
                 drive.trajectoryBuilder()
                 .strafeRight(offset)
