@@ -74,11 +74,16 @@ public class AutoBlue extends LinearOpMode {
         drive.update();
         drive.followTrajectorySync(
                 drive.trajectoryBuilder()
-                .splineTo(new Pose2d(60, drive.getPoseEstimate().getY(), 0))
+                .splineTo(new Pose2d(60, drive.getPoseEstimate().getY(), 0), interp)
                 .build()
         );
         deposit(drive,5);
         drive.update();
+        drive.followTrajectorySync(
+                drive.trajectoryBuilder()
+                .splineTo(new Pose2d(-16, drive.getPoseEstimate().getY(), 0), interp)
+                .build()
+        );
 
     }
     public void deposit(SampleMecanumDriveBase drive, double offset) {
@@ -89,6 +94,7 @@ public class AutoBlue extends LinearOpMode {
                 .build()
         );
         setClaw(CLAW_RELEASE);
+        delay(0.4);
         drive.followTrajectorySync(
                 drive.trajectoryBuilder()
                 .strafeLeft(offset)
