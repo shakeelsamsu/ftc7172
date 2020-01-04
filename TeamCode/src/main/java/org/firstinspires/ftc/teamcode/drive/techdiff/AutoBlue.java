@@ -83,7 +83,7 @@ public class AutoBlue extends LinearOpMode {
                         .splineTo(new Pose2d(55, drive.getPoseEstimate().getY()), interp)
                         .build()
         );
-        deposit(drive, 4.5);
+        deposit(drive,4.5);
         drive.update();
 
         // Go back and Second Pick-Up
@@ -98,7 +98,7 @@ public class AutoBlue extends LinearOpMode {
         followTrajectoryArmSync(
                 drive.trajectoryBuilder()
                         .reverse()
-                        .splineTo(new Pose2d(STONES_X[1], drive.getPoseEstimate().getY()), interp)
+                        .splineTo(new Pose2d(STONES_X[1],drive.getPoseEstimate().getY()),interp)
                         .build()
         );
         strafeAndGrab(drive, 5);
@@ -111,7 +111,7 @@ public class AutoBlue extends LinearOpMode {
                         .splineTo(new Pose2d(60, drive.getPoseEstimate().getY(), 0))
                         .build()
         );
-        deposit(drive, 5);
+        deposit(drive,5);
         drive.update();
 
         delay(1000);
@@ -120,12 +120,11 @@ public class AutoBlue extends LinearOpMode {
         drive.followTrajectorySync(
                 drive.trajectoryBuilder()
                         .reverse()
-                        .splineTo(new Pose2d(STONES_X[0], drive.getPoseEstimate().getY()), interp)
+                        .splineTo(new Pose2d(STONES_X[0],drive.getPoseEstimate().getY()),interp)
                         .build()
         );
         drive.update();
     }
-
     public void deposit(SampleMecanumDriveBase drive, double offset) {
         setRotate(ROTATE_SIDE);
         drive.followTrajectorySync(
@@ -144,7 +143,6 @@ public class AutoBlue extends LinearOpMode {
         setClaw(CLAW_STOW);
 
     }
-
     public void strafeAndGrab(SampleMecanumDriveBase drive, double offset) {
         setArm(ARM_OVER);
         setClaw(CLAW_RELEASE);
@@ -166,42 +164,37 @@ public class AutoBlue extends LinearOpMode {
                         .build()
         );
     }
-
     public void setArm(double p) {
         rarm.setPosition(p);
     }
-
     public void setClaw(double p) {
         rclaw.setPosition(p);
     }
-
     public void setRotate(double p) {
         rrotate.setPosition(p);
     }
-
     public void delay(double time) {
         timer.reset();
-        while (opModeIsActive() && timer.seconds() < time) {
-        }
+        while (opModeIsActive() && timer.seconds() < time) {}
     }
 
     // TODO: make state an argument, add a default case
     public void followTrajectoryArmSync(Trajectory t) {
         drive.followTrajectory(t);
-        while (!Thread.currentThread().isInterrupted() && drive.isBusy()) {
+        while(!Thread.currentThread().isInterrupted() && drive.isBusy()) {
             drive.update();
-            switch (state) {
+            switch(state) {
                 case TO_FOUNDATION:
-                    if (drive.getPoseEstimate().getX() > -40)
+                    if(drive.getPoseEstimate().getX() > -40)
                         setRotate(ROTATE_BACK);
                     break;
                 case TO_QUARRY:
-                    if (drive.getPoseEstimate().getX() > 15) {
+                    if(drive.getPoseEstimate().getX() > 15) {
                         setClaw(CLAW_STOW);
                         setArm(ARM_STOW);
                         setRotate(ROTATE_SIDE);
                     }
-                    if (drive.getPoseEstimate().getX() < -12) {
+                    if(drive.getPoseEstimate().getX() < -12) {
                         setArm(ARM_OVER);
                         setClaw(CLAW_RELEASE);
                     }
