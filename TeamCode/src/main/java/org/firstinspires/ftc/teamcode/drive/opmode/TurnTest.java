@@ -25,5 +25,10 @@ public class TurnTest extends LinearOpMode {
         if (isStopRequested()) return;
 
         drive.turnSync(Math.toRadians(ANGLE));
+
+        while(!isStopRequested()) {
+            telemetry.addData("IMU HEading", Math.toDegrees(drive.getExternalHeading()));
+            telemetry.update();
+        }
     }
 }
