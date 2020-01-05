@@ -4,8 +4,8 @@ import com.acmerobotics.dashboard.config.Config;
 import com.acmerobotics.roadrunner.geometry.Pose2d;
 import com.acmerobotics.roadrunner.geometry.Vector2d;
 import com.acmerobotics.roadrunner.path.heading.ConstantInterpolator;
+import com.acmerobotics.roadrunner.path.heading.LinearInterpolator;
 import com.acmerobotics.roadrunner.trajectory.Trajectory;
-import com.acmerobotics.roadrunner.trajectory.TrajectoryBuilder;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.Servo;
@@ -32,6 +32,9 @@ public class AutoBlue extends LinearOpMode {
 
     public static double FOUNDATION_GRAB = 0.1;
     public static double FOUNDATION_RELEASE = 0.5;
+
+    ConstantInterpolator constInterp = new ConstantInterpolator(0);
+    LinearInterpolator linInterp = new LinearInterpolator(0,Math.toRadians(90));
 
     enum State {
         TO_FOUNDATION,
@@ -61,7 +64,6 @@ public class AutoBlue extends LinearOpMode {
         int stonePos = 5;
         waitForStart();
         drive.setPoseEstimate(new Pose2d(-36, 63, 0));
-        ConstantInterpolator interp = new ConstantInterpolator(0);
         setRotate(ROTATE_SIDE);
         setArm(ARM_OVER);
         setClaw(CLAW_RELEASE);
@@ -70,41 +72,38 @@ public class AutoBlue extends LinearOpMode {
         // First Pick-Up
         drive.followTrajectorySync(
                 drive.trajectoryBuilder()
-                        //.reverse()
                         .strafeTo(new Vector2d(STONES_X[stonePos], 36))
-                        .build()//To(new Vector2d(36, -32)).build()
+                        .build()
         );
         strafeAndGrab(drive, 4.5);
         drive.update();
 
+                                                                                                        //go to foundation test
+                                                                                                        drive.followTrajectorySync(
+                                                                                                                drive.trajectoryBuilder()
+                                                                                                                .splineTo(new Pose2d(12, drive.getPoseEstimate().getY(), 0), constInterp)
+                                                                                                                .splineTo(new Pose2d(55, 42 , Math.toRadians(90)), linInterp)
+                                                                                                                .build()
+                                                                                                        );
+
+        delay(100);
+
         // Go to Foundation and Deposit 1
-//        drive.followTrajectorySync(
-//                drive.trajectoryBuilder()
-//                .splineTo(new Pose2d(55, drive.getPoseEstimate().getY()),interp)
-//                .build()
-//        );
         state = State.TO_FOUNDATION;
         followTrajectoryArmSync(
                 drive.trajectoryBuilder()
-                        .splineTo(new Pose2d(55, drive.getPoseEstimate().getY(), 0), interp)
+                        .splineTo(new Pose2d(55, drive.getPoseEstimate().getY(), 0), constInterp)
                         .build()
         );
         deposit(drive,4.5);
         drive.update();
 
         // Go back and Second Pick-Up
-//        drive.followTrajectorySync(
-//                drive.trajectoryBuilder()
-//                    .reverse()
-//                    //.addMarker(new Vector2d(drive.getPoseEstimate().getX(), 12), () -> {setRotate(ROTATE_BACK); setClaw(CLAW_RELEASE); setArm(ARM_OVER); return Unit.INSTANCE;})
-//                    .splineTo(new Pose2d(STONES_X[stonePos + 3],drive.getPoseEstimate().getY()),interp)
-//                .build()
-//        );
         state = State.TO_QUARRY;
         followTrajectoryArmSync(
                 drive.trajectoryBuilder()
                         .reverse()
-                        .splineTo(new Pose2d(STONES_X[0],drive.getPoseEstimate().getY(),0),interp)
+                        .splineTo(new Pose2d(STONES_X[0],drive.getPoseEstimate().getY(),0), constInterp)
                         .build()
         );
         strafeAndGrab(drive, 5);
@@ -114,7 +113,7 @@ public class AutoBlue extends LinearOpMode {
         state = State.TO_FOUNDATION;
         followTrajectoryArmSync(
                 drive.trajectoryBuilder()
-                        .splineTo(new Pose2d(60, drive.getPoseEstimate().getY(), 0),interp)
+                        .splineTo(new Pose2d(60, drive.getPoseEstimate().getY(), 0), constInterp)
                         .build()
         );
         deposit(drive,4);
@@ -127,7 +126,7 @@ public class AutoBlue extends LinearOpMode {
         followTrajectoryArmSync(
                 drive.trajectoryBuilder()
                         .reverse()
-                        .splineTo(new Pose2d(STONES_X[1],drive.getPoseEstimate().getY(),0),interp)
+                        .splineTo(new Pose2d(STONES_X[1],drive.getPoseEstimate().getY(),0), constInterp)
                         .build()
         );
         drive.update();
@@ -138,7 +137,7 @@ public class AutoBlue extends LinearOpMode {
         state = State.TO_FOUNDATION;
         followTrajectoryArmSync(
                 drive.trajectoryBuilder()
-                .splineTo(new Pose2d(60, drive.getPoseEstimate().getY(), 0), interp)
+                .splineTo(new Pose2d(60, drive.getPoseEstimate().getY(), 0), constInterp)
                 .build()
         );
         drive.update();
