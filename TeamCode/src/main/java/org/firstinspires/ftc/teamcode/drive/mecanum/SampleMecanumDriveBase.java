@@ -1,6 +1,7 @@
 package org.firstinspires.ftc.teamcode.drive.mecanum;
 
 import static org.firstinspires.ftc.teamcode.drive.DriveConstants.BASE_CONSTRAINTS;
+import static org.firstinspires.ftc.teamcode.drive.DriveConstants.SLOW_CONSTRAINTS;
 import static org.firstinspires.ftc.teamcode.drive.DriveConstants.TRACK_WIDTH;
 import static org.firstinspires.ftc.teamcode.drive.DriveConstants.kA;
 import static org.firstinspires.ftc.teamcode.drive.DriveConstants.kStatic;
@@ -58,6 +59,7 @@ public abstract class SampleMecanumDriveBase extends MecanumDrive {
     private double turnStart;
 
     private DriveConstraints constraints;
+    private DriveConstraints constraintsSlow;
     private TrajectoryFollower follower;
 
     private List<Double> lastWheelPositions;
@@ -77,11 +79,16 @@ public abstract class SampleMecanumDriveBase extends MecanumDrive {
         turnController.setInputBounds(0, 2 * Math.PI);
 
         constraints = new MecanumConstraints(BASE_CONSTRAINTS, TRACK_WIDTH);
+        constraintsSlow = new MecanumConstraints(SLOW_CONSTRAINTS, TRACK_WIDTH);
         follower = new HolonomicPIDVAFollower(AXIAL_PID, LATERAL_PID, HEADING_PID);
     }
 
     public TrajectoryBuilder trajectoryBuilder() {
         return new TrajectoryBuilder(getPoseEstimate(), constraints);
+    }
+
+    public TrajectoryBuilder trajectoryBuilderSlow() {
+        return new TrajectoryBuilder(getPoseEstimate(), constraintsSlow);
     }
 
     public void turn(double angle) {
