@@ -81,7 +81,7 @@ public class AutoRed extends LinearOpMode {
                         .strafeTo(new Vector2d(STONES_X[stonePos], -36))
                         .build()
                 , State.DEFAULT);
-        strafeAndGrabRight(drive, 4.5);
+        strafeAndGrabLeft(drive, 4.5);
         drive.update();
 
         // Go to Foundation
@@ -117,7 +117,7 @@ public class AutoRed extends LinearOpMode {
         deposit();
         drive.followTrajectorySync(
                 drive.trajectoryBuilder()
-                        .strafeLeft(7)
+                        .strafeRight(7)
                         .back(20).build()
         );
         setArm(ARM_STOW);
