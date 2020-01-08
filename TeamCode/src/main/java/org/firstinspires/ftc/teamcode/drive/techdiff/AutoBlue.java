@@ -20,12 +20,12 @@ public class AutoBlue extends LinearOpMode {
     ElapsedTime timer = new ElapsedTime();
     public static double ARM_STOW = 0.21;
     public static double ARM_GRAB = 0.7;
-    public static double ARM_OVER = 0.67;
+    public static double ARM_OVER = 0.58;
     public static double ARM_DROP = 0.35;
 
     public static double CLAW_STOW = 0.92;
     public static double CLAW_GRAB = 0.93;
-    public static double CLAW_RELEASE = 0.25;
+    public static double CLAW_RELEASE = 0.15;
 
     public static double ROTATE_SIDE = 0.47;
     public static double ROTATE_BACK = 0;
@@ -46,7 +46,7 @@ public class AutoBlue extends LinearOpMode {
     // probably going to use an array for positions eventually
 //    public static final double MIDDLE_STONE_X = -20;
 //    public static final double SKYSTONE_OFFSET = -28;
-    public static final double[] STONES_X = {-22, -29, -30, -38, -54, -62};
+    public static final double[] STONES_X = {-22, -29, -30, -38, -54, -58};
     // this offset is for intakes after the first one
     public static final double STONE_OFFSET = 0;
 
@@ -77,32 +77,30 @@ public class AutoBlue extends LinearOpMode {
 
         followTrajectoryArmSync(
                 drive.trajectoryBuilder()
-                        .strafeTo(new Vector2d(STONES_X[stonePos], 36))
+                        .strafeTo(new Vector2d(STONES_X[stonePos], 38))
                         .build()
                 , State.DEFAULT);
+
+
         strafeAndGrabRight(drive, 4.5);
+
         drive.update();
 
         // Go to Foundation
         followTrajectoryArmSync(
                 drive.trajectoryBuilder()
-                        .splineTo(new Pose2d(12, drive.getPoseEstimate().getY(), 0), constInterp)
+                        .lineTo(new Vector2d(10, 38))
                         .lineTo(new Vector2d(50, 40), linInterp)
                         .build()
                 , State.TO_FOUNDATION);
-//        deposit(drive,4.5);
         drive.update();
-        delay(1);
-        if(opModeIsActive()) {
-                telemetry.addData("current y", drive.getPoseEstimate().getY());
-                telemetry.update();
-        }
-        delay(2);
+
+        //delay(2);
 
         // Move Foundation and deposit
         drive.followTrajectorySync(
                 drive.trajectoryBuilderSlow()
-                        .back(drive.getPoseEstimate().getY()-26)
+                        .back(drive.getPoseEstimate().getY()-32)
                         .build()
         );
         setFoundation(FOUNDATION_GRAB);

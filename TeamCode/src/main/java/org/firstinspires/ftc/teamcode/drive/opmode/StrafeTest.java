@@ -29,5 +29,10 @@ public class StrafeTest extends LinearOpMode {
         if (isStopRequested()) return;
 
         drive.followTrajectorySync(trajectory);
+
+        while (!isStopRequested()) {
+            telemetry.addData("imu heading", drive.getExternalHeading());
+            telemetry.update();
+        }
     }
 }

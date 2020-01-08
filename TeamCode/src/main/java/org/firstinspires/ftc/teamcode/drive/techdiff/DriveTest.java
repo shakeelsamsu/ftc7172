@@ -22,35 +22,44 @@ public class DriveTest extends LinearOpMode {
         timer.reset();
         SampleMecanumDriveBase drive = new SampleMecanumDriveREVOptimized(hardwareMap);
         waitForStart();
-        drive.setPoseEstimate(new Pose2d(-36, -63, Math.PI));
-        ConstantInterpolator interpolator = new ConstantInterpolator(Math.PI);
+        drive.setPoseEstimate(new Pose2d(-48, 0, 0));
+        ConstantInterpolator interpolator = new ConstantInterpolator(0);
         drive.followTrajectorySync(
                 drive.trajectoryBuilder()
-                        .lineTo(new Vector2d(-36, -32), interpolator)
-                        .build()
+                .lineTo(new Vector2d(48,12),interpolator)
+                .build()
         );
-        delay(5);
-
-        int n = 3;
-        while(n-- > 0) {
-            drive.followTrajectorySync(
-                    drive.trajectoryBuilder()
-                            .lineTo(new Vector2d(-36, -36), interpolator)
-                            .lineTo(new Vector2d(47.5, -36), interpolator)
-                            .lineTo(new Vector2d(47.5, -32), interpolator)
-                            .build()
-            );
-            delay(1);
-            drive.followTrajectorySync(
-                    drive.trajectoryBuilder()
-                            .lineTo(new Vector2d(47.5, -36), interpolator)
-                            .lineTo(new Vector2d(-36, -36), interpolator)
-                            .lineTo(new Vector2d(-36, -32), interpolator)
-                            .reverse()
-                            .build()
-            );
-            delay(1);
+        while (!isStopRequested()) {
+            telemetry.addData("imu heading", drive.getExternalHeading());
+            telemetry.update();
         }
+//        drive.followTrajectorySync(
+//                drive.trajectoryBuilder()
+//                        .lineTo(new Vector2d(-36, -32), interpolator)
+//                        .build()
+//        );
+//        delay(5);
+//
+//        int n = 3;
+//        while(n-- > 0) {
+//            drive.followTrajectorySync(
+//                    drive.trajectoryBuilder()
+//                            .lineTo(new Vector2d(-36, -36), interpolator)
+//                            .lineTo(new Vector2d(47.5, -36), interpolator)
+//                            .lineTo(new Vector2d(47.5, -32), interpolator)
+//                            .build()
+//            );
+//            delay(1);
+//            drive.followTrajectorySync(
+//                    drive.trajectoryBuilder()
+//                            .lineTo(new Vector2d(47.5, -36), interpolator)
+//                            .lineTo(new Vector2d(-36, -36), interpolator)
+//                            .lineTo(new Vector2d(-36, -32), interpolator)
+//                            .reverse()
+//                            .build()
+//            );
+//            delay(1);
+//        }
     }
 
     public void delay(double seconds) {
