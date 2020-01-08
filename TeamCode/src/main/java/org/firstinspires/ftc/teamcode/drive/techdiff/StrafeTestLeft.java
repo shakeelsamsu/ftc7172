@@ -13,7 +13,7 @@ import org.firstinspires.ftc.teamcode.drive.mecanum.SampleMecanumDriveREVOptimiz
  */
 @Config
 @Autonomous(group = "drive")
-public class StrafeTest extends LinearOpMode {
+public class StrafeTestLeft extends LinearOpMode {
     public static double DISTANCE = 24;
 
     @Override
@@ -21,7 +21,7 @@ public class StrafeTest extends LinearOpMode {
         SampleMecanumDriveBase drive = new SampleMecanumDriveREVOptimized(hardwareMap);
 
         Trajectory trajectory = drive.trajectoryBuilder()
-                .strafeRight(DISTANCE)
+                .strafeLeft(DISTANCE)
                 .build();
 
         waitForStart();
