@@ -35,19 +35,19 @@ public class AutoRed extends LinearOpMode {
     private static double FOUNDATION_RELEASE = 0.5;
 
     //
-    public static double L_ARM_STOW = 0.86;
-    public static double L_ARM_GRAB = 0.4;
-    public static double L_ARM_OVER = 0.47;
-    public static double L_ARM_DROP = 0.7;
+    public static double L_ARM_STOW = 0.76;
+    public static double L_ARM_GRAB = 0.3;
+    public static double L_ARM_OVER = 0.38;
+    public static double L_ARM_DROP = 0.62;
 
         // done
     public static double L_CLAW_STOW = 0;
     public static double L_CLAW_GRAB = 0;
     public static double L_CLAW_RELEASE = 0.65;
 
-    public static double L_ROTATE_SIDE = 0.145;
-    public static double L_ROTATE_DEPOSIT = 0.5;
-    public static double L_ROTATE_BACK = 0.59;
+    public static double L_ROTATE_SIDE = 0.165;
+    public static double L_ROTATE_DEPOSIT = 0.53;
+    public static double L_ROTATE_BACK = 0.64;
 
     private static double ALLEY_Y = -39;
 
@@ -92,20 +92,20 @@ public class AutoRed extends LinearOpMode {
         foundation = hardwareMap.get(Servo.class, "foundation");
         int stonePos = 5;
 
-//        while (!isStopRequested()) {
-//            if (gamepad1.x) {LsetArm(L_ARM_STOW);RsetArm(R_ARM_STOW);}
-//            else if (gamepad1.y) {LsetArm(L_ARM_GRAB);RsetArm(R_ARM_GRAB);}
-//            else if (gamepad1.a) {LsetArm(L_ARM_OVER);RsetArm(R_ARM_OVER);}
-//            else {LsetArm(L_ARM_DROP);RsetArm(R_ARM_DROP);}
-//
-//            if (gamepad1.b) {LsetClaw(L_CLAW_GRAB);RsetClaw(R_CLAW_GRAB);}
-//            else if (gamepad1.dpad_up) {LsetClaw(L_CLAW_STOW);RsetClaw(R_CLAW_STOW);}
-//            else {LsetClaw(L_CLAW_RELEASE);RsetClaw(R_CLAW_RELEASE);}
-//
-//            if (gamepad2.x) {LsetRotate(L_ROTATE_BACK);RsetRotate(R_ROTATE_BACK);}
-//            else if (gamepad2.y) {LsetRotate(L_ROTATE_DEPOSIT);RsetRotate(R_ROTATE_DEPOSIT);}
-//            else {LsetRotate(L_ROTATE_SIDE);RsetRotate(R_ROTATE_SIDE);}
-//        }
+        while (!isStopRequested()) {
+            if (gamepad1.x) {LsetArm(L_ARM_STOW);RsetArm(R_ARM_STOW);}
+            else if (gamepad1.y) {LsetArm(L_ARM_GRAB);RsetArm(R_ARM_GRAB);}
+            else if (gamepad1.a) {LsetArm(L_ARM_OVER);RsetArm(R_ARM_OVER);}
+            else {LsetArm(L_ARM_DROP);RsetArm(R_ARM_DROP);}
+
+            if (gamepad1.b) {LsetClaw(L_CLAW_GRAB);RsetClaw(R_CLAW_GRAB);}
+            else if (gamepad1.dpad_up) {LsetClaw(L_CLAW_STOW);RsetClaw(R_CLAW_STOW);}
+            else {LsetClaw(L_CLAW_RELEASE);RsetClaw(R_CLAW_RELEASE);}
+
+            if (gamepad2.x) {LsetRotate(L_ROTATE_BACK);RsetRotate(R_ROTATE_BACK);}
+            else if (gamepad2.y) {LsetRotate(L_ROTATE_SIDE);RsetRotate(R_ROTATE_SIDE);}
+            else {LsetRotate(L_ROTATE_DEPOSIT);RsetRotate(R_ROTATE_DEPOSIT);}
+        }
 
         waitForStart();
 
