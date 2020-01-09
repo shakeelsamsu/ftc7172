@@ -50,7 +50,6 @@ public class StandardTrackingWheelLocalizer extends ThreeTrackingWheelLocalizer 
         leftEncoder = hardwareMap.dcMotor.get("rin");
         rightEncoder = hardwareMap.dcMotor.get("lift2");
         frontEncoder = hardwareMap.dcMotor.get("lin");
-//        frontEncoder.setDirection(DcMotorSimple.Direction.REVERSE);
     }
 
     public static double encoderTicksToInches(int ticks) {

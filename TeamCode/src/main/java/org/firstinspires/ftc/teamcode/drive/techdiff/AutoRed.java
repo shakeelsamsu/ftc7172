@@ -8,6 +8,7 @@ import com.acmerobotics.roadrunner.path.heading.LinearInterpolator;
 import com.acmerobotics.roadrunner.trajectory.Trajectory;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
@@ -19,13 +20,13 @@ import org.firstinspires.ftc.teamcode.drive.mecanum.SampleMecanumDriveREVOptimiz
 public class AutoRed extends LinearOpMode {
     ElapsedTime timer = new ElapsedTime();
     private static double R_ARM_STOW = 0.21;
-    private static double R_ARM_GRAB = 0.7;
+    private static double R_ARM_GRAB = 0.66;
     private static double R_ARM_OVER = 0.58;
     private static double R_ARM_DROP = 0.35;
 
-    private static double R_CLAW_STOW = 0.92;
-    private static double R_CLAW_GRAB = 0.93;
-    private static double R_CLAW_RELEASE = 0.15;
+    public static double R_CLAW_STOW = 0.85;
+    public static double R_CLAW_GRAB = 0.7;
+    public static double R_CLAW_RELEASE = 0.17;
 
     private static double R_ROTATE_SIDE = 0.47;
     private static double R_ROTATE_DEPOSIT = 0.105;
@@ -40,10 +41,10 @@ public class AutoRed extends LinearOpMode {
     public static double L_ARM_OVER = 0.38;
     public static double L_ARM_DROP = 0.62;
 
-        // done
-    public static double L_CLAW_STOW = 0;
-    public static double L_CLAW_GRAB = 0;
-    public static double L_CLAW_RELEASE = 0.65;
+    // done
+    public static double L_CLAW_STOW = 0.09;
+    public static double L_CLAW_GRAB = 0.2;
+    public static double L_CLAW_RELEASE = 0.75;
 
     public static double L_ROTATE_SIDE = 0.165;
     public static double L_ROTATE_DEPOSIT = 0.53;
@@ -58,8 +59,14 @@ public class AutoRed extends LinearOpMode {
     enum State {
         TO_FOUNDATION,
         TO_QUARRY,
-        FINISH,
+        TO_FINISH,
+        TO_FIRST_STONE,
         DEFAULT
+    }
+
+    enum Claw {
+        LEFT,
+        RIGHT
     }
 
     // probably going to use an array for positions eventually
@@ -77,8 +84,13 @@ public class AutoRed extends LinearOpMode {
     private Servo lrotate;
     private Servo foundation;
 
+    private DcMotor lift1, lift2;
+
     private SampleMecanumDriveBase drive;
     private State state;
+    private Claw clawSide;
+    private Claw CLAW_SIDE = clawSide.LEFT;
+    private ElapsedTime liftClock = new ElapsedTime();
 
     public void runOpMode() {
         timer = new ElapsedTime();
@@ -90,29 +102,40 @@ public class AutoRed extends LinearOpMode {
         lrotate = hardwareMap.get(Servo.class, "lrotate");
         lclaw = hardwareMap.get(Servo.class, "lclaw");
         foundation = hardwareMap.get(Servo.class, "foundation");
+        lift1 = hardwareMap.get(DcMotor.class, "lift1");
+        lift2 = hardwareMap.get(DcMotor.class, "lift2");
+        lift1.setDirection(DcMotor.Direction.REVERSE);
+        lift1.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        lift2.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         int stonePos = 5;
 
-        while (!isStopRequested()) {
-            if (gamepad1.x) {LsetArm(L_ARM_STOW);RsetArm(R_ARM_STOW);}
-            else if (gamepad1.y) {LsetArm(L_ARM_GRAB);RsetArm(R_ARM_GRAB);}
-            else if (gamepad1.a) {LsetArm(L_ARM_OVER);RsetArm(R_ARM_OVER);}
-            else {LsetArm(L_ARM_DROP);RsetArm(R_ARM_DROP);}
-
-            if (gamepad1.b) {LsetClaw(L_CLAW_GRAB);RsetClaw(R_CLAW_GRAB);}
-            else if (gamepad1.dpad_up) {LsetClaw(L_CLAW_STOW);RsetClaw(R_CLAW_STOW);}
-            else {LsetClaw(L_CLAW_RELEASE);RsetClaw(R_CLAW_RELEASE);}
-
-            if (gamepad2.x) {LsetRotate(L_ROTATE_BACK);RsetRotate(R_ROTATE_BACK);}
-            else if (gamepad2.y) {LsetRotate(L_ROTATE_SIDE);RsetRotate(R_ROTATE_SIDE);}
-            else {LsetRotate(L_ROTATE_DEPOSIT);RsetRotate(R_ROTATE_DEPOSIT);}
-        }
+//        while (!isStopRequested()) {
+//            if (gamepad1.x) {LsetArm(L_ARM_STOW);RsetArm(R_ARM_STOW);}
+//            else if (gamepad1.y) {LsetArm(L_ARM_GRAB);RsetArm(R_ARM_GRAB);}
+//            else if (gamepad1.a) {LsetArm(L_ARM_OVER);RsetArm(R_ARM_OVER);}
+//            else {LsetArm(L_ARM_DROP);RsetArm(R_ARM_DROP);}
+//
+//            if (gamepad1.b) {LsetClaw(L_CLAW_GRAB);RsetClaw(R_CLAW_GRAB);}
+//            else if (gamepad1.dpad_up) {LsetClaw(L_CLAW_STOW);RsetClaw(R_CLAW_STOW);}
+//            else {LsetClaw(L_CLAW_RELEASE);RsetClaw(R_CLAW_RELEASE);}
+//
+//            if (gamepad2.x) {LsetRotate(L_ROTATE_BACK);RsetRotate(R_ROTATE_BACK);}
+//            else if (gamepad2.y) {LsetRotate(L_ROTATE_SIDE);RsetRotate(R_ROTATE_SIDE);}
+//            else {LsetRotate(L_ROTATE_DEPOSIT);RsetRotate(R_ROTATE_DEPOSIT);}
+//        }
 
         waitForStart();
+        liftClock.reset();
+        lift1.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
 
         drive.setPoseEstimate(new Pose2d(-36, -63, 0));
-//        RsetRotate(R_ROTATE_SIDE);
-//        RsetArm(R_ARM_OVER);
-//        RsetClaw(R_CLAW_RELEASE);
+        delay(1);
+        RsetRotate(R_ROTATE_SIDE);
+        RsetClaw(R_CLAW_STOW);
+        RsetArm(R_ARM_STOW);
+        LsetRotate(L_ROTATE_SIDE);
+        LsetArm(L_ARM_OVER);
+        LsetClaw(L_CLAW_RELEASE);
         setFoundation(FOUNDATION_RELEASE);
 
         // First Pick-Up
@@ -122,7 +145,7 @@ public class AutoRed extends LinearOpMode {
                         .strafeTo(new Vector2d(STONES_X[stonePos], -38))
                         .build()
                 , State.DEFAULT);
-        strafeAndGrabLeft(drive, 4.5);
+        strafeAndGrab(drive, 4.5);
         drive.update();
 
         // Go to Foundation
@@ -135,27 +158,37 @@ public class AutoRed extends LinearOpMode {
         drive.update();
 
         // Move Foundation and deposit
-        drive.followTrajectorySync(
+        followTrajectoryArmSync(
                 drive.trajectoryBuilderSlow()
                         .back(Math.abs(drive.getPoseEstimate().getY()+30))
                         .build()
+                , State.DEFAULT
         );
         setFoundation(FOUNDATION_GRAB);
         delay(0.7);
-        drive.followTrajectorySync(
+        followTrajectoryArmSync(
                 drive.trajectoryBuilder()
                         .splineTo(new Pose2d(24,-55,Math.toRadians(-180)))
                         .build()
+                , State.DEFAULT
         );
         setFoundation(FOUNDATION_RELEASE);
         deposit();
-        drive.followTrajectorySync(
+        followTrajectoryArmSync(
                 drive.trajectoryBuilder()
                         .strafeRight(7)
                         .back(20).build()
+                , State.DEFAULT
         );
+
+        // Switch claw/arm sides
+        CLAW_SIDE = clawSide.RIGHT;
+        LsetRotate(L_ROTATE_SIDE);
+        LsetArm(L_ARM_STOW);
+        LsetClaw(L_CLAW_STOW);
         RsetArm(R_ARM_STOW);
         RsetClaw(R_CLAW_STOW);
+
         // Go back and Second Pick-Up
         followTrajectoryArmSync(
                 drive.trajectoryBuilder()
@@ -164,17 +197,16 @@ public class AutoRed extends LinearOpMode {
                         .build()
                 , State.TO_QUARRY
         );
-        delay(3);
-        strafeAndGrabRight(drive, -drive.getPoseEstimate().getY()-33.5  );
+        strafeAndGrab(drive, -drive.getPoseEstimate().getY()-33.5  );
         drive.update();
 
         //deposit second stone
         followTrajectoryArmSync(
                 drive.trajectoryBuilder()
                         .reverse()
-                .splineTo(new Pose2d(-10, ALLEY_Y, Math.toRadians(-180)))
-                .splineTo(new Pose2d(49, ALLEY_Y, Math.toRadians(-180)))
-                .build()
+                        .splineTo(new Pose2d(-10, ALLEY_Y, Math.toRadians(-180)))
+                        .splineTo(new Pose2d(49, ALLEY_Y, Math.toRadians(-180)))
+                        .build()
                 , State.TO_FOUNDATION
         );
         deposit();
@@ -188,8 +220,7 @@ public class AutoRed extends LinearOpMode {
                         .build()
                 , State.TO_QUARRY);
         drive.update();
-        delay(3);
-        strafeAndGrabRight(drive,-drive.getPoseEstimate().getY()-33.5);
+        strafeAndGrab(drive,-drive.getPoseEstimate().getY()-33.5);
 
         // Go to foundation 3
         followTrajectoryArmSync(
@@ -205,62 +236,68 @@ public class AutoRed extends LinearOpMode {
 
         followTrajectoryArmSync(
                 drive.trajectoryBuilder()
-                .splineTo(new Pose2d(4, ALLEY_Y, Math.toRadians(-180)))
-                .build()
-                , State.FINISH
+                        .splineTo(new Pose2d(4, ALLEY_Y, Math.toRadians(-180)))
+                        .build()
+                , State.TO_FINISH
         );
     }
 
     public void deposit() {
-        RsetRotate(R_ROTATE_DEPOSIT);
-        RsetArm(R_ARM_DROP);
-        RsetClaw(R_CLAW_RELEASE);
-
+        if (CLAW_SIDE == clawSide.RIGHT) {
+            RsetRotate(R_ROTATE_DEPOSIT);
+            RsetArm(R_ARM_DROP);
+            RsetClaw(R_CLAW_RELEASE);
+        }
+        else {
+            LsetRotate(L_ROTATE_DEPOSIT);
+            LsetArm(L_ARM_DROP);
+            LsetClaw(L_CLAW_RELEASE);
+        }
+    }
+    public void strafeAndGrab(SampleMecanumDriveBase drive, double offset) {
+        if (CLAW_SIDE == clawSide.LEFT) {
+            LsetArm(L_ARM_OVER);
+            LsetClaw(L_CLAW_RELEASE);
+            followTrajectoryArmSync(
+                    drive.trajectoryBuilder()
+                            .strafeLeft(offset)
+                            .build()
+                    , State.DEFAULT
+            );
+            LsetArm(L_ARM_GRAB);
+            delay(0.3);
+            LsetClaw(L_CLAW_GRAB);
+            delay(0.3);
+            LsetArm(L_ARM_DROP);
+            followTrajectoryArmSync(
+                    drive.trajectoryBuilder()
+                            .strafeRight(offset)
+                            .build()
+                    , State.DEFAULT
+            );
+        } else {
+            RsetArm(R_ARM_OVER);
+            RsetClaw(R_CLAW_RELEASE);
+            followTrajectoryArmSync(
+                    drive.trajectoryBuilder()
+                            .strafeRight(offset)
+                            .build()
+                    , State.DEFAULT
+            );
+            RsetArm(R_ARM_GRAB);
+            delay(0.3);
+            RsetClaw(R_CLAW_GRAB);
+            delay(0.3);
+            RsetArm(R_ARM_DROP);
+            followTrajectoryArmSync(
+                    drive.trajectoryBuilder()
+                            .strafeLeft(offset)
+                            .build()
+                    , State.DEFAULT
+            );
+        }
     }
 
-    public void strafeAndGrabRight(SampleMecanumDriveBase drive, double offset) {
-        RsetArm(R_ARM_OVER);
-        RsetClaw(R_CLAW_RELEASE);
-        drive.followTrajectorySync(
-                drive.trajectoryBuilder()
-                        .strafeRight(offset)
-                        .build()
-        );
-        RsetArm(R_ARM_GRAB);
-        delay(0.3);
-        RsetClaw(R_CLAW_GRAB);
-        delay(0.3);
-        RsetArm(R_ARM_DROP);
-//        delay(0.4);
-//        RsetRotate(R_ROTATE_BACK);
-        drive.followTrajectorySync(
-                drive.trajectoryBuilder()
-                        .strafeLeft(offset)
-                        .build()
-        );
-    }
-
-    public void strafeAndGrabLeft(SampleMecanumDriveBase drive, double offset) {
-        LsetArm(R_ARM_OVER);
-        LsetClaw(R_CLAW_RELEASE);
-        drive.followTrajectorySync(
-                drive.trajectoryBuilder()
-                        .strafeLeft(offset)
-                        .build()
-        );
-        LsetArm(R_ARM_GRAB);
-        delay(0.3);
-        LsetClaw(R_CLAW_GRAB);
-        delay(0.3);
-        LsetArm(R_ARM_DROP);
-//        delay(0.4);
-//        RsetRotate(R_ROTATE_BACK);
-        drive.followTrajectorySync(
-                drive.trajectoryBuilder()
-                        .strafeRight(offset)
-                        .build()
-        );
-    }
 
     public void setFoundation(double pos) {
         foundation.setPosition(pos);
@@ -292,6 +329,25 @@ public class AutoRed extends LinearOpMode {
         timer.reset();
         while (opModeIsActive() && timer.seconds() < time) {
             drive.update();
+            flipIntakeUpdate();
+        }
+    }
+
+    public void liftPower(double pow) {
+        lift1.setPower(pow);
+        lift2.setPower(pow);
+    }
+
+    public void flipIntakeUpdate() {
+        lift1.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        if (liftClock.seconds() < 0.5 && lift1.getCurrentPosition() > -8000)  {
+            liftPower(0.5);
+        } else if (liftClock.seconds() <1.0) {
+            liftPower(0);
+        } else if (liftClock.seconds() < 5.0 && lift1.getCurrentPosition() < -200) {
+            liftPower(-0.5);
+        } else {
+            liftPower(0);
         }
     }
 
@@ -300,12 +356,13 @@ public class AutoRed extends LinearOpMode {
         drive.followTrajectory(t);
         while(!Thread.currentThread().isInterrupted() && drive.isBusy()) {
             drive.update();
+            flipIntakeUpdate();
             switch(s) {
                 case TO_FOUNDATION:
-                    if(drive.getPoseEstimate().getX() < 40)
-                        RsetRotate(R_ROTATE_BACK);
-                    if(drive.getPoseEstimate().getX() > -20)
-                        RsetArm(R_ARM_DROP);
+                    if(drive.getPoseEstimate().getX() > -40) {
+                        if (CLAW_SIDE == clawSide.RIGHT) RsetRotate(R_ROTATE_BACK);
+                        else LsetRotate(L_ROTATE_BACK);
+                    }
                     break;
                 case TO_QUARRY:
                     if(drive.getPoseEstimate().getX() < -15) {
@@ -314,10 +371,11 @@ public class AutoRed extends LinearOpMode {
                         RsetRotate(R_ROTATE_SIDE);
                     }
                     break;
-                case FINISH:
-                    RsetArm(R_ARM_STOW);
-                    delay(0.3);
+                case TO_FINISH:
                     RsetRotate(R_ROTATE_SIDE);
+                    delay(0.3);
+                    RsetArm(R_CLAW_STOW);
+                    RsetArm(R_ARM_STOW);
                     break;
                 case DEFAULT:
                     break;
