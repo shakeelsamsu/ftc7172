@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode.drive.techdiff;
+package org.firstinspires.ftc.teamcode;
 
 import com.qualcomm.hardware.bosch.BNO055IMU;
 import com.qualcomm.robotcore.hardware.AnalogInput;
@@ -7,7 +7,10 @@ import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DistanceSensor;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
-
+/*
+Constants class for Glide. If values are changed in Android Studio/OnBot Java,
+they must be updated in the other editor as well.
+*/
 public class GlideConstants {
 
     public static double RAMPING_ERROR = 5000;
@@ -17,7 +20,7 @@ public class GlideConstants {
 
     public final double BAR_FORWARD = 0.23;    // when bar is holding a stone
     public final double BAR_BACK = 0.75; // when bar points in robot's forward direction, when it is idle
-    public static double GRAB_POS = 0.19;
+    public static double GRAB_POS = 0.14;
     public static double LETGO_POS = 0.27;
 
     public static double R_ARM_STOW = 0.21 ;
@@ -51,38 +54,39 @@ public class GlideConstants {
     public static double L_ROTATE_DEPOSIT = 0.53;
     public static double L_ROTATE_BACK = 0.64;
 
-    final double STONE_DIST_BAR = 1.6;
-    final double STONE_DIST_GRAB = 0.3;
-    final double GRAB_WAIT = 0.75;
+    final static double STONE_DIST_BAR = 1.6;
+    final static double STONE_DIST_GRAB = 0.3;
+    final static double GRAB_WAIT = 0.75;
     boolean seen = false;
 
-    public double GANTRY_RETRACT = 0.94;
-    public double GANTRY_CAP = 0.55;
-    public double GANTRY_EXTEND = 0.1;
-    public double gantryPosition = GANTRY_RETRACT;
-    public double gantryLock = 0;
-    public double GANTRY_EXTEND_DELAY = 1.2;
+    public static double GANTRY_RANGE = 0.84;
+    public static double GANTRY_CAP = 0.65;
+    public static double GANTRY_EXTEND = 0.15;
+    public static double GANTRY_RETRACT = GANTRY_EXTEND + GANTRY_RANGE;
+    public static double gantryPosition = GANTRY_RETRACT;
+    public static double gantryLock = 0;
+    public static double GANTRY_EXTEND_DELAY = 1.2;
 
-    public final double TRACK_TICKS = 2332;
-    public final double TICKS_PER_INCH = 1142.1815; //prev 190.a0
-    public final int DISPLAY_ODOMETRY = 0x0001;
-    public final int DISPLAY_IMU = 0x0002;
-    public final int DISPLAY_LIFT = 0x0004;
-    public final int DISPLAY_CALCTRACK = 0x80000000;
-    public final int DISPLAY_ALL = 0xffffffff;
-    public final int DISPLAY_GANTRY = 0x0008;
-    public final int DISPLAY_GRAB = 0x0010;
-    public final int DISPLAY_ALIGN = 0x0020;
-    public final int DISPLAY_GENERAL = 0x0040;
-    public final int DISPLAY_INTAKE = 0x0080;
+    public static final double TRACK_TICKS = 2332;
+    public static final double TICKS_PER_INCH = 1142.1815; //prev 190.a0
+    public static final int DISPLAY_ODOMETRY = 0x0001;
+    public static final int DISPLAY_IMU = 0x0002;
+    public static final int DISPLAY_LIFT = 0x0004;
+    public static final int DISPLAY_CALCTRACK = 0x80000000;
+    public static final int DISPLAY_ALL = 0xffffffff;
+    public static final int DISPLAY_GANTRY = 0x0008;
+    public static final int DISPLAY_GRAB = 0x0010;
+    public static final int DISPLAY_ALIGN = 0x0020;
+    public static final int DISPLAY_GENERAL = 0x0040;
+    public static final int DISPLAY_INTAKE = 0x0080;
 
-    public final int LEVEL_DEAD_ZONE = 100;
+    public static final int LEVEL_DEAD_ZONE = 100;
 
-    final double GRAB_TIME = 0.95;
+    final static double GRAB_TIME = 0.95;
 
     public static enum Auto {IDLE, LIFT, HOME, GRAB, SCORE};
     Auto autoState = Auto.IDLE;
 
-    public double ALIGN_STRAFE_GAIN = 0.6;
+    public static double ALIGN_STRAFE_GAIN = 0.6;
 
 }
