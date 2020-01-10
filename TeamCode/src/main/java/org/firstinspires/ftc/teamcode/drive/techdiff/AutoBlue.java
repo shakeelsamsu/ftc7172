@@ -19,14 +19,14 @@ import org.firstinspires.ftc.teamcode.drive.mecanum.SampleMecanumDriveREVOptimiz
 @Autonomous
 public class AutoBlue extends LinearOpMode {
     ElapsedTime timer = new ElapsedTime();
-    private static double R_ARM_STOW = 0.21;
-    private static double R_ARM_GRAB = 0.66;
+    private static double R_ARM_STOW = 0.21 ;
+    private static double R_ARM_GRAB = 0.66 ;
     private static double R_ARM_OVER = 0.58;
     private static double R_ARM_DROP = 0.35;
 
-    public static double R_CLAW_STOW = 0.85;
-    public static double R_CLAW_GRAB = 0.7;
-    public static double R_CLAW_RELEASE = 0.17;
+    public static double R_CLAW_STOW = 0.99;
+    public static double R_CLAW_GRAB = 0.84;
+    public static double R_CLAW_RELEASE = 0.31;
 
     private static double R_ROTATE_SIDE = 0.47;
     private static double R_ROTATE_DEPOSIT = 0.105;
@@ -35,6 +35,7 @@ public class AutoBlue extends LinearOpMode {
     private static double FOUNDATION_GRAB = 0.75;
     private static double FOUNDATION_RELEASE = 0.5;
 
+    //
     public static double L_ARM_STOW = 0.76;
     public static double L_ARM_GRAB = 0.3;
     public static double L_ARM_OVER = 0.38;
@@ -48,7 +49,6 @@ public class AutoBlue extends LinearOpMode {
     public static double L_ROTATE_SIDE = 0.165;
     public static double L_ROTATE_DEPOSIT = 0.53;
     public static double L_ROTATE_BACK = 0.64;
-
 
     ConstantInterpolator constInterp = new ConstantInterpolator(0);
     ConstantInterpolator constInterp180 = new ConstantInterpolator(Math.toRadians(180));

@@ -9,14 +9,17 @@ import com.qualcomm.robotcore.hardware.Servo;
 @TeleOp
 public class EncoderTest extends LinearOpMode {
     DcMotor lin, rin, lift2,a,b,c,d;
-    private static double R_ARM_STOW = 0.21;
-    private static double R_ARM_GRAB = 0.66;
+
+//    private static double offset = 0.14;
+
+    private static double R_ARM_STOW = 0.21 ;
+    private static double R_ARM_GRAB = 0.66 ;
     private static double R_ARM_OVER = 0.58;
     private static double R_ARM_DROP = 0.35;
 
-    public static double R_CLAW_STOW = 0.85;
-    public static double R_CLAW_GRAB = 0.7;
-    public static double R_CLAW_RELEASE = 0.17;
+    public static double R_CLAW_STOW = 0.99;
+    public static double R_CLAW_GRAB = 0.84;
+    public static double R_CLAW_RELEASE = 0.31;
 
     private static double R_ROTATE_SIDE = 0.47;
     private static double R_ROTATE_DEPOSIT = 0.105;
