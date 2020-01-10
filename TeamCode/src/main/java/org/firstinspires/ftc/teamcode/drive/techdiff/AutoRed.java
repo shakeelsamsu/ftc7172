@@ -89,8 +89,8 @@ public class AutoRed extends LinearOpMode {
 
     // good: 0 1 5
 
-    public static final double[] STONES_X = {-29.5, -37.5, -42, -48, -54, -60};
-    public static final double[][] STONE_OPTIONS = {{5, 0, 1}, {5, 2, 0}, {4, 1, 0}, {3, 0, 1}};
+    public static final double[] STONES_X = {-29.5, -37.5, -45.5, -44, -52, -60};
+    public static final int[][] STONE_OPTIONS = {{5, 0, 1}, {5, 2, 0}, {4, 1, 0}, {3, 0, 1}};
 
     private Servo rarm;
     private Servo rrotate;
@@ -194,18 +194,18 @@ public class AutoRed extends LinearOpMode {
 
         drive.setPoseEstimate(new Pose2d(-36, -63, 0));
         delay(1);
-        RsetRotate(R_ROTATE_SIDE);
-        RsetClaw(R_CLAW_STOW);
-        RsetArm(R_ARM_STOW);
         LsetRotate(L_ROTATE_SIDE);
-        LsetArm(L_ARM_OVER);
-        LsetClaw(L_CLAW_RELEASE);
+        LsetClaw(L_CLAW_STOW);
+        LsetArm(L_ARM_STOW);
+        RsetRotate(R_ROTATE_SIDE);
+        RsetArm(R_ARM_STOW);
+        RsetClaw(R_CLAW_STOW);
         setFoundation(FOUNDATION_RELEASE);
 
         // First Pick-Up
         followTrajectoryArmSync(
                 drive.trajectoryBuilder()
-                        .strafeTo(new Vector2d(STONES_X[stone1], -38))
+                        .strafeTo(new Vector2d(STONES_X[STONE_OPTIONS[stonePos][0]], -38))
                         .build()
                 , State.DEFAULT
         );
@@ -229,7 +229,7 @@ public class AutoRed extends LinearOpMode {
                 , State.DEFAULT
         );
         setFoundation(FOUNDATION_GRAB);
-        delay(0.7);
+        delay(0.4);
         followTrajectoryArmSync(
                 drive.trajectoryBuilder()
                         .splineTo(new Pose2d(24, -55, Math.toRadians(-180)))
@@ -257,7 +257,7 @@ public class AutoRed extends LinearOpMode {
         followTrajectoryArmSync(
                 drive.trajectoryBuilder()
                         .splineTo(new Pose2d(12, ALLEY_Y, Math.toRadians(-180)), constInterp180)
-                        .splineTo(new Pose2d(STONES_X[stone2],ALLEY_Y,Math.toRadians(-180)), constInterp180)
+                        .splineTo(new Pose2d(STONES_X[STONE_OPTIONS[stonePos][1]],ALLEY_Y,Math.toRadians(-180)), constInterp180)
                         .build()
                 , State.TO_QUARRY
         );
@@ -280,7 +280,7 @@ public class AutoRed extends LinearOpMode {
         followTrajectoryArmSync(
                 drive.trajectoryBuilder()
                         .splineTo(new Pose2d(12,ALLEY_Y,Math.toRadians(-180)))
-                        .splineTo(new Pose2d(STONES_X[stone3],ALLEY_Y,Math.toRadians(-180)))
+                        .splineTo(new Pose2d(STONES_X[STONE_OPTIONS[stonePos][2]],ALLEY_Y,Math.toRadians(-180)))
                         .build()
                 , State.TO_QUARRY);
         drive.update();
@@ -297,7 +297,7 @@ public class AutoRed extends LinearOpMode {
         drive.update();
 
         deposit();
-
+        delay(.25);
         followTrajectoryArmSync(
                 drive.trajectoryBuilder()
                         .splineTo(new Pose2d(4, ALLEY_Y, Math.toRadians(-180)))
