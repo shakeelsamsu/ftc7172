@@ -517,9 +517,9 @@ public class AutoBlue extends LinearOpMode {
         int pos = 0;
         getSkystone();
         if (stoneHeading < -10)
-            pos = 1;
-        else if (stoneHeading > 10)
             pos = 3;
+        else if (stoneHeading > 10)
+            pos = 1;
         else
             pos = 2;
         displayStoneInfo(telemetry);
@@ -554,10 +554,10 @@ public class AutoBlue extends LinearOpMode {
         // telemetry.update();
         int min = Math.min(Math.min(avg1, avg2), avg3);
         if (min == avg1)
-            return 1;
+            return 3;
         if (min == avg2)
             return 2;
-        return 3;
+        return 1;
     }
 
     public int getPosition() {
