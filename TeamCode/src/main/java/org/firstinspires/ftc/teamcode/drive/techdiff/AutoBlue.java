@@ -8,6 +8,7 @@ import com.acmerobotics.roadrunner.path.heading.LinearInterpolator;
 import com.acmerobotics.roadrunner.trajectory.Trajectory;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
@@ -18,20 +19,36 @@ import org.firstinspires.ftc.teamcode.drive.mecanum.SampleMecanumDriveREVOptimiz
 @Autonomous
 public class AutoBlue extends LinearOpMode {
     ElapsedTime timer = new ElapsedTime();
-    public static double R_ARM_STOW = 0.21;
-    public static double R_ARM_GRAB = 0.7;
-    public static double R_ARM_OVER = 0.58;
-    public static double R_ARM_DROP = 0.35;
+    private static double R_ARM_STOW = 0.21;
+    private static double R_ARM_GRAB = 0.66;
+    private static double R_ARM_OVER = 0.58;
+    private static double R_ARM_DROP = 0.35;
 
-    public static double R_CLAW_STOW = 0.92;
-    public static double R_CLAW_GRAB = 0.93;
-    public static double R_CLAW_RELEASE = 0.15;
+    public static double R_CLAW_STOW = 0.85;
+    public static double R_CLAW_GRAB = 0.7;
+    public static double R_CLAW_RELEASE = 0.17;
 
-    public static double R_ROTATE_SIDE = 0.47;
-    public static double R_ROTATE_BACK = 0;
+    private static double R_ROTATE_SIDE = 0.47;
+    private static double R_ROTATE_DEPOSIT = 0.105;
+    private static double R_ROTATE_BACK = 0;
 
-    public static double FOUNDATION_GRAB = 0.75;
-    public static double FOUNDATION_RELEASE = 0.5;
+    private static double FOUNDATION_GRAB = 0.75;
+    private static double FOUNDATION_RELEASE = 0.5;
+
+    public static double L_ARM_STOW = 0.76;
+    public static double L_ARM_GRAB = 0.3;
+    public static double L_ARM_OVER = 0.38;
+    public static double L_ARM_DROP = 0.62;
+
+    // done
+    public static double L_CLAW_STOW = 0.09;
+    public static double L_CLAW_GRAB = 0.2;
+    public static double L_CLAW_RELEASE = 0.75;
+
+    public static double L_ROTATE_SIDE = 0.165;
+    public static double L_ROTATE_DEPOSIT = 0.53;
+    public static double L_ROTATE_BACK = 0.64;
+
 
     ConstantInterpolator constInterp = new ConstantInterpolator(0);
     ConstantInterpolator constInterp180 = new ConstantInterpolator(Math.toRadians(180));
@@ -40,15 +57,15 @@ public class AutoBlue extends LinearOpMode {
     enum State {
         TO_FOUNDATION,
         TO_QUARRY,
+        TO_FINISH,
         DEFAULT
     }
+    enum Claw {
+        LEFT,
+        RIGHT
+    }
 
-    // probably going to use an array for positions eventually
-//    public static final double MIDDLE_STONE_X = -20;
-//    public static final double SKYSTONE_OFFSET = -28;
     public static final double[] STONES_X = {-22, -29, -30, -38, -54, -58};
-    // this offset is for intakes after the first one
-    public static final double STONE_OFFSET = 0;
 
     private Servo rarm;
     private Servo rrotate;
@@ -58,8 +75,13 @@ public class AutoBlue extends LinearOpMode {
     private Servo lrotate;
     private Servo foundation;
 
+    private DcMotor lift1, lift2;
+
     private SampleMecanumDriveBase drive;
     private State state;
+    private Claw clawSide;
+    private Claw CLAW_SIDE = clawSide.RIGHT;
+    private ElapsedTime liftClock = new ElapsedTime();
 
     public void runOpMode() {
         timer = new ElapsedTime();
@@ -67,26 +89,39 @@ public class AutoBlue extends LinearOpMode {
         rarm = hardwareMap.get(Servo.class, "rarm");
         rrotate = hardwareMap.get(Servo.class, "rrotate");
         rclaw = hardwareMap.get(Servo.class, "rclaw");
+        larm = hardwareMap.get(Servo.class, "larm");
+        lrotate = hardwareMap.get(Servo.class, "lrotate");
+        lclaw = hardwareMap.get(Servo.class, "lclaw");
         foundation = hardwareMap.get(Servo.class, "foundation");
+        lift1 = hardwareMap.get(DcMotor.class, "lift1");
+        lift2 = hardwareMap.get(DcMotor.class, "lift2");
+        lift1.setDirection(DcMotor.Direction.REVERSE);
+        lift1.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        lift2.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         int stonePos = 5;
+
         waitForStart();
+        liftClock.reset();
+        lift1.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+
         drive.setPoseEstimate(new Pose2d(-36, 63, 0));
+        delay(1);
+        LsetRotate(L_ROTATE_SIDE);
+        LsetClaw(L_CLAW_STOW);
+        LsetArm(L_ARM_STOW);
         RsetRotate(R_ROTATE_SIDE);
         RsetArm(R_ARM_OVER);
         RsetClaw(R_CLAW_RELEASE);
         setFoundation(FOUNDATION_RELEASE);
 
         // First Pick-Up
-
         followTrajectoryArmSync(
                 drive.trajectoryBuilder()
                         .strafeTo(new Vector2d(STONES_X[stonePos], 38))
                         .build()
-                , State.DEFAULT);
-
-
+                , State.DEFAULT
+        );
         strafeAndGrabRight(drive, 4.5);
-
         drive.update();
 
         // Go to Foundation
@@ -97,8 +132,6 @@ public class AutoBlue extends LinearOpMode {
                         .build()
                 , State.TO_FOUNDATION);
         drive.update();
-
-        //delay(2);
 
         // Move Foundation and deposit
         drive.followTrajectorySync(
@@ -120,8 +153,14 @@ public class AutoBlue extends LinearOpMode {
                         .strafeLeft(7)
                         .back(20).build()
         );
+
+        // Switch claw/arm sides
+        CLAW_SIDE = clawSide.LEFT;
+        RsetRotate(R_ROTATE_SIDE);
         RsetArm(R_ARM_STOW);
         RsetClaw(R_CLAW_STOW);
+        LsetArm(L_ARM_STOW);
+        LsetClaw(L_CLAW_STOW);
 
         // Go back and Second Pick-Up
         followTrajectoryArmSync(
@@ -135,14 +174,25 @@ public class AutoBlue extends LinearOpMode {
 
         if (true) return;
 
+        //deposit second stone
+        followTrajectoryArmSync(
+                drive.trajectoryBuilder()
+                .reverse()
+                .splineTo(new Pose2d(-10, 36, Math.toRadians(-180)))
+                .splineTo(new Pose2d(49, 36, Math.toRadians(-180)))
+                .build()
+                , State.TO_FOUNDATION
+        );
+        deposit();
+        delay(.25);
+
         // Go back and Third Pick-Up
         followTrajectoryArmSync(
                 drive.trajectoryBuilder()
-                        .splineTo(new Pose2d(STONES_X[1],drive.getPoseEstimate().getY(),0), constInterp)
+                        .splineTo(new Pose2d(STONES_X[1],36,Math.toRadians(-180)))
+                        .splineTo(new Pose2d(STONES_X[1], 36, Math.toRadians(-180)))
                         .build()
                 , State.TO_QUARRY);
-        drive.update();
-//        strafeAndGrab(drive, 4);
         drive.update();
 
         // Go to foundation
@@ -157,53 +207,59 @@ public class AutoBlue extends LinearOpMode {
     }
 
     public void deposit() {
-        RsetRotate(R_ROTATE_BACK);
-        RsetArm(R_ARM_DROP);
-        RsetClaw(R_CLAW_RELEASE);
-
+        if (CLAW_SIDE == clawSide.RIGHT) {
+            RsetRotate(R_ROTATE_DEPOSIT);
+            RsetArm(R_ARM_DROP);
+            RsetClaw(R_CLAW_RELEASE);
+        }
+        else {
+            LsetRotate(L_ROTATE_DEPOSIT);
+            LsetArm(L_ARM_DROP);
+            LsetClaw(L_CLAW_RELEASE);
+        }
     }
 
     public void strafeAndGrabRight(SampleMecanumDriveBase drive, double offset) {
         RsetArm(R_ARM_OVER);
         RsetClaw(R_CLAW_RELEASE);
-        drive.followTrajectorySync(
+        followTrajectoryArmSync(
                 drive.trajectoryBuilder()
                         .strafeRight(offset)
                         .build()
+                , State.DEFAULT
         );
         RsetArm(R_ARM_GRAB);
         delay(0.3);
         RsetClaw(R_CLAW_GRAB);
         delay(0.3);
         RsetArm(R_ARM_DROP);
-//        delay(0.4);
-//        RsetRotate(R_ROTATE_BACK);
-        drive.followTrajectorySync(
+        followTrajectoryArmSync(
                 drive.trajectoryBuilder()
                         .strafeLeft(offset)
                         .build()
+                , State.DEFAULT
         );
     }
 
     public void strafeAndGrabLeft(SampleMecanumDriveBase drive, double offset) {
-        RsetArm(R_ARM_OVER);
-        RsetClaw(R_CLAW_RELEASE);
-        drive.followTrajectorySync(
+        LsetArm(L_ARM_OVER);
+        LsetClaw(L_CLAW_RELEASE);
+        followTrajectoryArmSync(
                 drive.trajectoryBuilder()
                         .strafeLeft(offset)
                         .build()
+                , State.DEFAULT
         );
-        RsetArm(R_ARM_GRAB);
+        LsetArm(L_ARM_GRAB);
         delay(0.3);
-        RsetClaw(R_CLAW_GRAB);
+        LsetClaw(L_CLAW_GRAB);
         delay(0.3);
-        RsetArm(R_ARM_DROP);
-//        delay(0.4);
-//        RsetRotate(R_ROTATE_BACK);
-        drive.followTrajectorySync(
+        LsetArm(L_ARM_DROP);
+        followTrajectoryArmSync(
                 drive.trajectoryBuilder()
                         .strafeRight(offset)
                         .build()
+                , State.DEFAULT
         );
     }
 
@@ -236,31 +292,53 @@ public class AutoBlue extends LinearOpMode {
         timer.reset();
         while (opModeIsActive() && timer.seconds() < time) {
             drive.update();
+            flipIntakeUpdate();
         }
     }
+    public void liftPower(double pow) {
+        lift1.setPower(pow);
+        lift2.setPower(pow);
+    }
+    public void flipIntakeUpdate() {
+        lift1.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        if (liftClock.seconds() < 0.5 && lift1.getCurrentPosition() > -8000)  {
+            liftPower(0.5);
+        } else if (liftClock.seconds() <1.0) {
+            liftPower(0);
+        } else if (liftClock.seconds() < 5.0 && lift1.getCurrentPosition() < -200) {
+            liftPower(-0.5);
+        } else {
+            liftPower(0);
+        }
+    }
+
 
     // TODO: make state an argument, add a default case
     public void followTrajectoryArmSync(Trajectory t, State s) {
         drive.followTrajectory(t);
         while(!Thread.currentThread().isInterrupted() && drive.isBusy()) {
             drive.update();
-            switch(s) {
+            flipIntakeUpdate();
+            switch (s) {
                 case TO_FOUNDATION:
-                    if(drive.getPoseEstimate().getX() > -40)
-                        RsetRotate(R_ROTATE_BACK);
-                    if(drive.getPoseEstimate().getX() > 20)
-                        RsetArm(R_ARM_DROP);
+                    if (drive.getPoseEstimate().getX() > -40) {
+                        if (CLAW_SIDE == clawSide.RIGHT) RsetRotate(R_ROTATE_BACK);
+                        else LsetRotate(L_ROTATE_BACK);
+                    }
                     break;
                 case TO_QUARRY:
-                    if(drive.getPoseEstimate().getX() > 15) {
-                        RsetClaw(R_CLAW_STOW);
-                        RsetArm(R_ARM_STOW);
-                        RsetRotate(R_ROTATE_SIDE);
+                    if (drive.getPoseEstimate().getX() < -15) {
+                        LsetClaw(L_CLAW_RELEASE);
+                        LsetArm(L_ARM_OVER);
+                        LsetRotate(L_ROTATE_SIDE);
                     }
-                    if(drive.getPoseEstimate().getX() < -12) {
-                        RsetArm(R_ARM_OVER);
-                        RsetClaw(R_CLAW_RELEASE);
-                    }
+                    break;
+                case TO_FINISH:
+                    LsetRotate(L_ROTATE_SIDE);
+                    delay(0.3);
+                    LsetClaw(L_CLAW_STOW);
+                    LsetArm(L_ARM_STOW);
+                    break;
                 case DEFAULT:
                     break;
             }

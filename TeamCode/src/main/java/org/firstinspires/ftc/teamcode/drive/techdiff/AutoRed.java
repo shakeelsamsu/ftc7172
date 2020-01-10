@@ -60,7 +60,6 @@ public class AutoRed extends LinearOpMode {
         TO_FOUNDATION,
         TO_QUARRY,
         TO_FINISH,
-        TO_FIRST_STONE,
         DEFAULT
     }
 
@@ -68,13 +67,9 @@ public class AutoRed extends LinearOpMode {
         LEFT,
         RIGHT
     }
-
-    // probably going to use an array for positions eventually
-//    public static final double MIDDLE_STONE_X = -20;
-//    public static final double SKYSTONE_OFFSET = -28;
+    // good: 0 1 5
     public static final double[] STONES_X = {-29.5, -37.5, -42, -48, -54, -60};
-    // this offset is for intakes after the first one
-    public static final double STONE_OFFSET = 0;
+    public static final double[][] STONE_OPTIONS = {{5,0,1},{5,2,0},{4,1,0},{3,0,1}};
 
     private Servo rarm;
     private Servo rrotate;
@@ -109,21 +104,6 @@ public class AutoRed extends LinearOpMode {
         lift2.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         int stonePos = 5;
 
-//        while (!isStopRequested()) {
-//            if (gamepad1.x) {LsetArm(L_ARM_STOW);RsetArm(R_ARM_STOW);}
-//            else if (gamepad1.y) {LsetArm(L_ARM_GRAB);RsetArm(R_ARM_GRAB);}
-//            else if (gamepad1.a) {LsetArm(L_ARM_OVER);RsetArm(R_ARM_OVER);}
-//            else {LsetArm(L_ARM_DROP);RsetArm(R_ARM_DROP);}
-//
-//            if (gamepad1.b) {LsetClaw(L_CLAW_GRAB);RsetClaw(R_CLAW_GRAB);}
-//            else if (gamepad1.dpad_up) {LsetClaw(L_CLAW_STOW);RsetClaw(R_CLAW_STOW);}
-//            else {LsetClaw(L_CLAW_RELEASE);RsetClaw(R_CLAW_RELEASE);}
-//
-//            if (gamepad2.x) {LsetRotate(L_ROTATE_BACK);RsetRotate(R_ROTATE_BACK);}
-//            else if (gamepad2.y) {LsetRotate(L_ROTATE_SIDE);RsetRotate(R_ROTATE_SIDE);}
-//            else {LsetRotate(L_ROTATE_DEPOSIT);RsetRotate(R_ROTATE_DEPOSIT);}
-//        }
-
         waitForStart();
         liftClock.reset();
         lift1.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
@@ -139,12 +119,12 @@ public class AutoRed extends LinearOpMode {
         setFoundation(FOUNDATION_RELEASE);
 
         // First Pick-Up
-
         followTrajectoryArmSync(
                 drive.trajectoryBuilder()
                         .strafeTo(new Vector2d(STONES_X[stonePos], -38))
                         .build()
-                , State.DEFAULT);
+                , State.DEFAULT
+        );
         strafeAndGrab(drive, 4.5);
         drive.update();
 
@@ -298,11 +278,7 @@ public class AutoRed extends LinearOpMode {
         }
     }
 
-
-    public void setFoundation(double pos) {
-        foundation.setPosition(pos);
-    }
-
+    public void setFoundation(double pos) { foundation.setPosition(pos); }
 
     public void RsetArm(double p) {
         rarm.setPosition(p);
@@ -313,7 +289,6 @@ public class AutoRed extends LinearOpMode {
     public void RsetRotate(double p) {
         rrotate.setPosition(p);
     }
-
 
     public void LsetArm(double p) {
         larm.setPosition(p);
@@ -374,7 +349,7 @@ public class AutoRed extends LinearOpMode {
                 case TO_FINISH:
                     RsetRotate(R_ROTATE_SIDE);
                     delay(0.3);
-                    RsetArm(R_CLAW_STOW);
+                    RsetClaw(R_CLAW_STOW);
                     RsetArm(R_ARM_STOW);
                     break;
                 case DEFAULT:
