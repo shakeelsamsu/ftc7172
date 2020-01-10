@@ -185,7 +185,7 @@ public class AutoRed extends LinearOpMode {
                     : (mode == Mode.AVG ? "AVG" : "MANUAL")));
             telemetry.addData("selectRow?", selectRow);
             telemetry.addData("selected row", row);
-            telemetry.addData("position", getPosition());
+            telemetry.addData("position", stonePos = getPosition());
             telemetry.update();
         }
 
