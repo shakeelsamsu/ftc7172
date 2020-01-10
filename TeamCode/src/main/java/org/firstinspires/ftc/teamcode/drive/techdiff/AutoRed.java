@@ -157,6 +157,8 @@ public class AutoRed extends LinearOpMode {
         lift1.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         lift2.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         int stonePos = 5;
+
+        // Vision
         initVuforia();
         telemetry.update();
         if (ClassFactory.getInstance().canCreateTFObjectDetector()) {
@@ -178,16 +180,15 @@ public class AutoRed extends LinearOpMode {
                 "\nDPAD_UP: row + 5" +
                 "\nDPAD_DOWN: row - 5" +
                 "\nDPAD_LEFT and DPAD_RIGHT: MANUAL positions");
-        while (!opModeIsActive()) {
+        while (!opModeIsActive() && !isStopRequested()) {
             telemetry.addData("mode", (mode == Mode.TF ? "TF"
                     : (mode == Mode.AVG ? "AVG" : "MANUAL")));
             telemetry.addData("selectRow?", selectRow);
             telemetry.addData("selected row", row);
-            telemetry.addData("position", getPosition());
+            telemetry.addData("position", stonePos = getPosition());
             telemetry.update();
         }
 
-        waitForStart();
         liftClock.reset();
         lift1.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
 
