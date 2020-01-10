@@ -19,6 +19,10 @@ import org.firstinspires.ftc.teamcode.drive.mecanum.SampleMecanumDriveREVOptimiz
 @Autonomous
 public class AutoRed extends LinearOpMode {
     ElapsedTime timer = new ElapsedTime();
+    public static int stone1 = 4;
+    public static int stone2 = 3;
+    public static int stone3 = 2;
+
     private static double R_ARM_STOW = 0.21;
     private static double R_ARM_GRAB = 0.66;
     private static double R_ARM_OVER = 0.58;
@@ -68,7 +72,7 @@ public class AutoRed extends LinearOpMode {
         RIGHT
     }
     // good: 0 1 5
-    public static final double[] STONES_X = {-29.5, -37.5, -42, -48, -54, -60};
+    public static final double[] STONES_X = {-29.5, -37.5, -42, -50, -54, -60};
     public static final double[][] STONE_OPTIONS = {{5,0,1},{5,2,0},{4,1,0},{3,0,1}};
 
     private Servo rarm;
@@ -121,11 +125,11 @@ public class AutoRed extends LinearOpMode {
         // First Pick-Up
         followTrajectoryArmSync(
                 drive.trajectoryBuilder()
-                        .strafeTo(new Vector2d(STONES_X[stonePos], -38))
+                        .strafeTo(new Vector2d(STONES_X[stone1], -38))
                         .build()
                 , State.DEFAULT
         );
-        strafeAndGrab(drive, 4.5);
+        strafeAndGrab(drive,-drive.getPoseEstimate().getY()-33.5 );
         drive.update();
 
         // Go to Foundation
@@ -173,7 +177,7 @@ public class AutoRed extends LinearOpMode {
         followTrajectoryArmSync(
                 drive.trajectoryBuilder()
                         .splineTo(new Pose2d(12, ALLEY_Y, Math.toRadians(-180)), constInterp180)
-                        .splineTo(new Pose2d(STONES_X[0],ALLEY_Y,Math.toRadians(-180)), constInterp180)
+                        .splineTo(new Pose2d(STONES_X[stone2],ALLEY_Y,Math.toRadians(-180)), constInterp180)
                         .build()
                 , State.TO_QUARRY
         );
@@ -196,7 +200,7 @@ public class AutoRed extends LinearOpMode {
         followTrajectoryArmSync(
                 drive.trajectoryBuilder()
                         .splineTo(new Pose2d(12,ALLEY_Y,Math.toRadians(-180)))
-                        .splineTo(new Pose2d(STONES_X[1],ALLEY_Y,Math.toRadians(-180)))
+                        .splineTo(new Pose2d(STONES_X[stone3],ALLEY_Y,Math.toRadians(-180)))
                         .build()
                 , State.TO_QUARRY);
         drive.update();
