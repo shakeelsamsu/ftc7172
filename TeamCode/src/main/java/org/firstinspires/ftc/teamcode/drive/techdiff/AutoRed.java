@@ -89,7 +89,7 @@ public class AutoRed extends LinearOpMode {
 
     // good: 0 1 5
 
-    public static final double[] STONES_X = {-29.5, -37.5, -42, -48, -54, -60};
+    public static final double[] STONES_X = {-29.5, -37.5, -45.5, -44, -52, -60};
     public static final double[][] STONE_OPTIONS = {{5, 0, 1}, {5, 2, 0}, {4, 1, 0}, {3, 0, 1}};
 
     private Servo rarm;
@@ -296,7 +296,7 @@ public class AutoRed extends LinearOpMode {
         drive.update();
 
         deposit();
-
+        delay(.25);
         followTrajectoryArmSync(
                 drive.trajectoryBuilder()
                         .splineTo(new Pose2d(4, ALLEY_Y, Math.toRadians(-180)))

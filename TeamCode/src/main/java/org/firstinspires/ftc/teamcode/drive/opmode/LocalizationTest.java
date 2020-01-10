@@ -31,7 +31,7 @@ public class LocalizationTest extends LinearOpMode {
         SampleMecanumDriveBase drive = new SampleMecanumDriveREVOptimized(hardwareMap);
 
         waitForStart();
-
+        drive.setPoseEstimate(new Pose2d(-36, -63, 0));
         while (!isStopRequested()) {
 //            Pose2d baseVel = new Pose2d(
 //                    -gamepad1.left_stick_y,
