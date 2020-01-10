@@ -34,36 +34,36 @@ import java.util.List;
 @Autonomous
 public class AutoBlue extends LinearOpMode {
     ElapsedTime timer = new ElapsedTime();
-    private static double R_ARM_STOW = 0.21 ;
-    private static double R_ARM_GRAB = 0.66 ;
-    private static double R_ARM_OVER = 0.58;
-    private static double R_ARM_DROP = 0.35;
+    private static double R_ARM_STOW = GlideConstants.R_ARM_STOW;
+    private static double R_ARM_GRAB = GlideConstants.R_ARM_GRAB;
+    private static double R_ARM_OVER = GlideConstants.R_ARM_OVER;
+    private static double R_ARM_DROP = GlideConstants.R_ARM_DROP;
 
-    public static double R_CLAW_STOW = 0.99;
-    public static double R_CLAW_GRAB = 0.84;
-    public static double R_CLAW_RELEASE = 0.31;
+    public static double R_CLAW_STOW = GlideConstants.R_CLAW_STOW;
+    public static double R_CLAW_GRAB = GlideConstants.R_CLAW_GRAB;
+    public static double R_CLAW_RELEASE = GlideConstants.R_CLAW_RELEASE;
 
-    private static double R_ROTATE_SIDE = 0.47;
-    private static double R_ROTATE_DEPOSIT = 0.105;
-    private static double R_ROTATE_BACK = 0;
+    private static double R_ROTATE_SIDE = GlideConstants.R_ROTATE_SIDE;
+    private static double R_ROTATE_DEPOSIT = GlideConstants.R_ROTATE_DEPOSIT;
+    private static double R_ROTATE_BACK = GlideConstants.R_ROTATE_BACK;
 
-    private static double FOUNDATION_GRAB = 0.75;
-    private static double FOUNDATION_RELEASE = 0.5;
+    private static double FOUNDATION_GRAB = GlideConstants.FOUNDATION_GRAB;
+    private static double FOUNDATION_RELEASE = GlideConstants.FOUNDATION_RELEASE;
 
     //
-    public static double L_ARM_STOW = 0.76;
-    public static double L_ARM_GRAB = 0.3;
-    public static double L_ARM_OVER = 0.38;
-    public static double L_ARM_DROP = 0.62;
+    public static double L_ARM_STOW = GlideConstants.L_ARM_STOW;
+    public static double L_ARM_GRAB = GlideConstants.L_ARM_GRAB;
+    public static double L_ARM_OVER = GlideConstants.L_ARM_OVER;
+    public static double L_ARM_DROP = GlideConstants.L_ARM_DROP;
 
     // done
-    public static double L_CLAW_STOW = 0.09;
-    public static double L_CLAW_GRAB = 0.2;
-    public static double L_CLAW_RELEASE = 0.75;
+    public static double L_CLAW_STOW = GlideConstants.L_CLAW_STOW;
+    public static double L_CLAW_GRAB = GlideConstants.L_CLAW_GRAB;
+    public static double L_CLAW_RELEASE = GlideConstants.L_CLAW_RELEASE;
 
-    public static double L_ROTATE_SIDE = 0.165;
-    public static double L_ROTATE_DEPOSIT = 0.53;
-    public static double L_ROTATE_BACK = 0.64;
+    public static double L_ROTATE_SIDE = GlideConstants.L_ROTATE_SIDE;
+    public static double L_ROTATE_DEPOSIT = GlideConstants.L_ROTATE_DEPOSIT;
+    public static double L_ROTATE_BACK = GlideConstants.L_ROTATE_BACK;
 
     ConstantInterpolator constInterp = new ConstantInterpolator(0);
     ConstantInterpolator constInterp180 = new ConstantInterpolator(Math.toRadians(180));
