@@ -80,7 +80,7 @@ public class AutoBlue extends LinearOpMode {
         RIGHT
     }
 
-    public static final double[] STONES_X = {-29.5, -37.5, -45.5, -44, -52, -60};
+    public static final double[] STONES_X = {-29.5, -37.5, -45.5, -46, -52, -60};
     public static final int[][] STONE_OPTIONS = {{5, 0, 1}, {5, 2, 0}, {4, 1, 0}, {3, 0, 1}};
 
     private Servo rarm;
