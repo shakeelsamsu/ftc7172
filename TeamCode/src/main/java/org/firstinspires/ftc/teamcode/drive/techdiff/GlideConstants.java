@@ -60,9 +60,9 @@ public class GlideConstants {
     final static double GRAB_WAIT = 0.75;
     boolean seen = false;
 
-    public static double GANTRY_RANGE = 0.88;
-    public static double GANTRY_CAP = 0.65;
-    public static double GANTRY_EXTEND = 0.11;
+    public static double GANTRY_RANGE = 0.92;
+    public static double GANTRY_CAP = 0.52;
+    public static double GANTRY_EXTEND = 0.01;
     public static double GANTRY_RETRACT = GANTRY_EXTEND + GANTRY_RANGE;
     public static double gantryPosition = GANTRY_RETRACT;
     public static double gantryLock = 0;

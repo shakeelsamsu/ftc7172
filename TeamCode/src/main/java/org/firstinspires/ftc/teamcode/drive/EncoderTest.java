@@ -76,6 +76,13 @@ public class EncoderTest extends LinearOpMode {
             if (gamepad2.x) {LsetRotate(L_ROTATE_BACK);RsetRotate(R_ROTATE_BACK);}
             else if (gamepad2.y) {LsetRotate(L_ROTATE_SIDE);RsetRotate(R_ROTATE_SIDE);}
             else {LsetRotate(L_ROTATE_DEPOSIT);RsetRotate(R_ROTATE_DEPOSIT);}
+            telemetry.addData("y: ARM_GRAB, ROTATE_SIDE", 0);
+            telemetry.addData("x: ARM_STOW, ROTATE_BACK", 0);
+            telemetry.addData("default: ARM_GRAB, ROTATE_DEPOSIT", 0);
+            telemetry.addData("dpad_up: CLAW_STOW", 0);
+            telemetry.addData("b: CLAW_GRAB", 0);
+            telemetry.addData("a: ARM_OVER", 0);
+
             telemetry.addData("lin", lin.getCurrentPosition());
             telemetry.addData("rin", rin.getCurrentPosition());
             telemetry.addData("lift2", lift2.getCurrentPosition());

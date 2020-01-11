@@ -81,7 +81,7 @@ public class AutoBlue extends LinearOpMode {
         RIGHT
     }
 
-    public static final double[] STONES_X = {-29.5, -37.5, -45.5, -46, -52, -60};
+    public static final double[] STONES_X = {-29.5, -37.5, -45.5, -41, -52, -60};
     public static final int[][] STONE_OPTIONS = {{5, 0, 1}, {5, 2, 0}, {4, 1, 0}, {3, 0, 1}};
 
     private Servo rarm;
@@ -183,7 +183,7 @@ public class AutoBlue extends LinearOpMode {
         lift1.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
 
         drive.setPoseEstimate(new Pose2d(-36, 63, 0));
-        delay(1);
+        delay(0.5);
         LsetRotate(L_ROTATE_SIDE);
         LsetClaw(L_CLAW_STOW);
         LsetArm(L_ARM_STOW);
