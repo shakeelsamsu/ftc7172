@@ -1,5 +1,4 @@
 package org.firstinspires.ftc.teamcode.drive.techdiff;
-// note the package
 
 /*
 Constants class for Glide. If values are changed in Android Studio/OnBot Java,
@@ -9,7 +8,8 @@ public class GlideConstants {
 
     public static double RAMPING_ERROR = 5000;
 
-    public static int[] liftLevels = {0,7000,7000,11100,14500,19100,23000,27700,32000,35400,40100,44900,49400,53400,59700};
+    //                                    1    2      3     4    5     6     7     8    9     10    11      12   13    14
+    public static int[] LIFT_LEVELS = {0,7000,7000,11100,14500,19100,23000,27700,31400,35400,40100,44900,49400,53200,59400};
     final static int MAX_HEIGHT = 14;
 
     public final double BAR_FORWARD = 0.23;    // when bar is holding a stone
@@ -53,9 +53,9 @@ public class GlideConstants {
     final static double GRAB_WAIT = 0.75;
     boolean seen = false;
 
-    public static double GANTRY_RANGE = 0.84;
-    public static double GANTRY_CAP = 0.65;
-    public static double GANTRY_EXTEND = 0.15;
+    public static double GANTRY_RANGE = 0.92;
+    public static double GANTRY_CAP = 0.52;
+    public static double GANTRY_EXTEND = 0.01;
     public static double GANTRY_RETRACT = GANTRY_EXTEND + GANTRY_RANGE;
     public static double gantryPosition = GANTRY_RETRACT;
     public static double gantryLock = 0;
@@ -74,7 +74,7 @@ public class GlideConstants {
     public static final int DISPLAY_GENERAL = 0x0040;
     public static final int DISPLAY_INTAKE = 0x0080;
 
-    public static final int LEVEL_DEAD_ZONE = 100;
+    public static final int LEVEL_DEAD_ZONE = 250;
 
     final static double GRAB_TIME = 0.95;
 

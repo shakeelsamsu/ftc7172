@@ -17,9 +17,9 @@ public class EncoderTest extends LinearOpMode {
     private static double R_ARM_OVER = 0.58;
     private static double R_ARM_DROP = 0.35;
 
-    public static double R_CLAW_STOW = 0.99;
-    public static double R_CLAW_GRAB = 0.84;
-    public static double R_CLAW_RELEASE = 0.31;
+    public static double R_CLAW_STOW = 0.65;
+    public static double R_CLAW_GRAB = 0.6;
+    public static double R_CLAW_RELEASE = 0.3;
 
     private static double R_ROTATE_SIDE = 0.47;
     private static double R_ROTATE_DEPOSIT = 0.105;
@@ -34,10 +34,10 @@ public class EncoderTest extends LinearOpMode {
     public static double L_ARM_OVER = 0.38;
     public static double L_ARM_DROP = 0.62;
 
-    // done
-    public static double L_CLAW_STOW = 0.09;
-    public static double L_CLAW_GRAB = 0.2;
-    public static double L_CLAW_RELEASE = 0.75;
+    // do
+    public static double L_CLAW_STOW = 0.25;
+    public static double L_CLAW_GRAB = 0.3;
+    public static double L_CLAW_RELEASE = 0.6;
 
     public static double L_ROTATE_SIDE = 0.165;
     public static double L_ROTATE_DEPOSIT = 0.53;
@@ -76,6 +76,13 @@ public class EncoderTest extends LinearOpMode {
             if (gamepad2.x) {LsetRotate(L_ROTATE_BACK);RsetRotate(R_ROTATE_BACK);}
             else if (gamepad2.y) {LsetRotate(L_ROTATE_SIDE);RsetRotate(R_ROTATE_SIDE);}
             else {LsetRotate(L_ROTATE_DEPOSIT);RsetRotate(R_ROTATE_DEPOSIT);}
+            telemetry.addData("y: ARM_GRAB, ROTATE_SIDE", 0);
+            telemetry.addData("x: ARM_STOW, ROTATE_BACK", 0);
+            telemetry.addData("default: ARM_GRAB, ROTATE_DEPOSIT", 0);
+            telemetry.addData("dpad_up: CLAW_STOW", 0);
+            telemetry.addData("b: CLAW_GRAB", 0);
+            telemetry.addData("a: ARM_OVER", 0);
+
             telemetry.addData("lin", lin.getCurrentPosition());
             telemetry.addData("rin", rin.getCurrentPosition());
             telemetry.addData("lift2", lift2.getCurrentPosition());
