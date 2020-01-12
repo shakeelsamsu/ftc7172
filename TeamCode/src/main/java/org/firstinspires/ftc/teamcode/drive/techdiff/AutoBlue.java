@@ -199,7 +199,7 @@ public class AutoBlue extends LinearOpMode {
                         .build()
                 , State.DEFAULT
         );
-        strafeAndGrabRight(drive, 5);
+        strafeAndGrabRight(drive, Math.abs(drive.getPoseEstimate().getY())-32);
         drive.update();
 
         // Go to Foundation
@@ -288,13 +288,14 @@ public class AutoBlue extends LinearOpMode {
         deposit();
         delay(.25);
         followTrajectoryArmSync(
-                drive.trajectoryBuilder()
+                drive.trajectoryBuilderFinish()
                         .splineTo(new Pose2d(4, 39, Math.toRadians(180)))
                         .build()
                 , State.TO_FINISH
         );
 
     }
+
 
     public void deposit() {
         if (CLAW_SIDE == clawSide.RIGHT) {

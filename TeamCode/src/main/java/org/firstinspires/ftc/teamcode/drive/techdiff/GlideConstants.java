@@ -1,9 +1,12 @@
 package org.firstinspires.ftc.teamcode.drive.techdiff;
 
+import com.acmerobotics.dashboard.config.Config;
+
 /*
 Constants class for Glide. If values are changed in Android Studio/OnBot Java,
 they must be updated in the other editor as well.
 */
+@Config
 public class GlideConstants {
 
     public static double RAMPING_ERROR = 5000;
@@ -22,9 +25,9 @@ public class GlideConstants {
     public static double R_ARM_OVER = 0.58;
     public static double R_ARM_DROP = 0.35;
 
-    public static double R_CLAW_STOW = 0.99;
-    public static double R_CLAW_GRAB = 0.84;
-    public static double R_CLAW_RELEASE = 0.31;
+    public static double R_CLAW_STOW = 0.85;
+    public static double R_CLAW_GRAB = 0.8;
+    public static double R_CLAW_RELEASE = 0.3;
 
     public static double R_ROTATE_SIDE = 0.47;
     public static double R_ROTATE_DEPOSIT = 0.105;
@@ -40,9 +43,9 @@ public class GlideConstants {
     public static double L_ARM_DROP = 0.62;
 
     // done
-    public static double L_CLAW_STOW = 0.09;
-    public static double L_CLAW_GRAB = 0.2;
-    public static double L_CLAW_RELEASE = 0.75;
+    public static double L_CLAW_STOW = 0.2;
+    public static double L_CLAW_GRAB = 0.25;
+    public static double L_CLAW_RELEASE = 0.72;
 
     public static double L_ROTATE_SIDE = 0.165;
     public static double L_ROTATE_DEPOSIT = 0.53;

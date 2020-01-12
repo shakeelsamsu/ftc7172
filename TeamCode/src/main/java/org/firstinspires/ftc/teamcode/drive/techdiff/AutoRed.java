@@ -299,9 +299,11 @@ public class AutoRed extends LinearOpMode {
 
         deposit();
         delay(.25);
+
+        // Park
         followTrajectoryArmSync(
-                drive.trajectoryBuilder()
-                        .splineTo(new Pose2d(4, ALLEY_Y, Math.toRadians(-180)))
+                drive.trajectoryBuilderFinish()
+                        .splineTo(new Pose2d(8, ALLEY_Y, Math.toRadians(-180)))
                         .build()
                 , State.TO_FINISH
         );

@@ -1,6 +1,7 @@
 package org.firstinspires.ftc.teamcode.drive.mecanum;
 
 import static org.firstinspires.ftc.teamcode.drive.DriveConstants.BASE_CONSTRAINTS;
+import static org.firstinspires.ftc.teamcode.drive.DriveConstants.FINISH_CONSTRAINTS;
 import static org.firstinspires.ftc.teamcode.drive.DriveConstants.SLOW_CONSTRAINTS;
 import static org.firstinspires.ftc.teamcode.drive.DriveConstants.FAST_CONSTRAINTS;
 import static org.firstinspires.ftc.teamcode.drive.DriveConstants.TRACK_WIDTH;
@@ -62,6 +63,7 @@ public abstract class SampleMecanumDriveBase extends MecanumDrive {
     private DriveConstraints constraints;
     private DriveConstraints constraintsSlow;
     private DriveConstraints constraintsFast;
+    private DriveConstraints constraintsFinish;
     private TrajectoryFollower follower;
 
     private List<Double> lastWheelPositions;
@@ -80,6 +82,7 @@ public abstract class SampleMecanumDriveBase extends MecanumDrive {
         turnController = new PIDFController(HEADING_PID);
         turnController.setInputBounds(0, 2 * Math.PI);
 
+        constraintsFinish = new MecanumConstraints(FINISH_CONSTRAINTS ,TRACK_WIDTH);
         constraints = new MecanumConstraints(BASE_CONSTRAINTS, TRACK_WIDTH);
         constraintsSlow = new MecanumConstraints(SLOW_CONSTRAINTS, TRACK_WIDTH);
         constraintsFast = new MecanumConstraints(FAST_CONSTRAINTS, TRACK_WIDTH);
@@ -92,6 +95,10 @@ public abstract class SampleMecanumDriveBase extends MecanumDrive {
 
     public TrajectoryBuilder trajectoryBuilderSlow() {
         return new TrajectoryBuilder(getPoseEstimate(), constraintsSlow);
+    }
+
+    public TrajectoryBuilder trajectoryBuilderFinish() {
+        return new TrajectoryBuilder(getPoseEstimate(), constraintsFinish);
     }
 
     public TrajectoryBuilder trajectoryBuilderFast() {
