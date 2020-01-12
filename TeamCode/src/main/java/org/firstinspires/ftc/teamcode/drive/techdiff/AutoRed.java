@@ -1,6 +1,8 @@
 package org.firstinspires.ftc.teamcode.drive.techdiff;
 
+import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.config.Config;
+import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
 import com.acmerobotics.roadrunner.geometry.Pose2d;
 import com.acmerobotics.roadrunner.geometry.Vector2d;
 import com.acmerobotics.roadrunner.path.heading.ConstantInterpolator;
@@ -29,15 +31,17 @@ import org.firstinspires.ftc.teamcode.drive.mecanum.SampleMecanumDriveBase;
 import org.firstinspires.ftc.teamcode.drive.mecanum.SampleMecanumDriveREVOptimized;
 
 import java.nio.ByteBuffer;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Config
 @Autonomous
 public class AutoRed extends LinearOpMode {
     ElapsedTime timer = new ElapsedTime();
-    public static int stone1 = 4;
-    public static int stone2 = 3;
-    public static int stone3 = 2;
+    public static double stone1 = 0;
+    public static double stone2 = 0;
+    public static double stone3 = 0;
 
     private static double R_ARM_STOW = GlideConstants.R_ARM_STOW;
     private static double R_ARM_GRAB = GlideConstants.R_ARM_GRAB;
@@ -87,11 +91,12 @@ public class AutoRed extends LinearOpMode {
         LEFT,
         RIGHT
     }
-
+    private FtcDashboard dashboard;
+    private ElapsedTime clock = new ElapsedTime();
     // good: 0 1 5
 
-    public static final double[] STONES_X = {-29.5, -37.5, -45.5, -44, -52, -60};
-    public static final int[][] STONE_OPTIONS = {{5, 0, 1}, {5, 2, 0}, {4, 1, 0}, {3, 0, 1}};
+    public static final double[] STONES_X = {-29.5, -37.5, -45.5, -44, -52, -64};
+    public static final int[][] STONE_OPTIONS = {{5, 0, 1}, {5, 2, 0,1}, {4, 1, 0,2}, {3, 0, 1,2}};
 
     private Servo rarm;
     private Servo rrotate;
@@ -142,7 +147,13 @@ public class AutoRed extends LinearOpMode {
     int row = 300;
     int manualPosition = 1;
 
+    public String logString = "";
+
+    public HashMap<String, String> logger = new HashMap<String, String>();
+
     public void runOpMode() {
+        dashboard = FtcDashboard.getInstance();
+        dashboard.setTelemetryTransmissionInterval(25);
         timer = new ElapsedTime();
         drive = new SampleMecanumDriveREVOptimized(hardwareMap);
         rarm = hardwareMap.get(Servo.class, "rarm");
@@ -189,12 +200,11 @@ public class AutoRed extends LinearOpMode {
             telemetry.addData("position", stonePos = getPosition());
             telemetry.update();
         }
-
+        clock.reset();
         liftClock.reset();
         lift1.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-
-        drive.setPoseEstimate(new Pose2d(-36, -63, 0));
-        delay(1);
+        delay(.25);
+        drive.setPoseEstimate(new Pose2d(-38, -63, 0));
         LsetRotate(L_ROTATE_SIDE);
         LsetClaw(L_CLAW_STOW);
         LsetArm(L_ARM_STOW);
@@ -208,10 +218,19 @@ public class AutoRed extends LinearOpMode {
                 drive.trajectoryBuilder()
                         .strafeTo(new Vector2d(STONES_X[STONE_OPTIONS[stonePos][0]], -38))
                         .build()
-                , State.DEFAULT
+                ,State.DEFAULT
         );
-        strafeAndGrab(drive,-drive.getPoseEstimate().getY()-33.5 );
+        followTrajectoryArmSync(
+                drive.trajectoryBuilder()
+                        .strafeTo(new Vector2d(STONES_X[STONE_OPTIONS[stonePos][0]], -38))
+                        .build()
+                ,State.DEFAULT
+        );
+        stone1 = drive.getPoseEstimate().getY();
+        strafeAndGrab(drive,-stone1-33.5 );
         drive.update();
+        logString += "First pickup " + clock.seconds() + " ";
+        logger.put("First pickup", String.format("%.3f", clock.seconds()));
 
         // Go to Foundation
         followTrajectoryArmSync(
@@ -230,21 +249,24 @@ public class AutoRed extends LinearOpMode {
                 , State.DEFAULT
         );
         setFoundation(FOUNDATION_GRAB);
+        deposit();
         delay(0.4);
         followTrajectoryArmSync(
                 drive.trajectoryBuilder()
-                        .splineTo(new Pose2d(24, -55, Math.toRadians(-180)))
+                        .splineTo(new Pose2d(24, -47, Math.toRadians(-180)))
                         .build()
                 , State.DEFAULT
         );
-        setFoundation(FOUNDATION_RELEASE);
-        deposit();
         followTrajectoryArmSync(
                 drive.trajectoryBuilder()
-                        .strafeRight(7)
-                        .back(20).build()
+                .splineTo(new Pose2d(24, -47, Math.toRadians((-180))))
+                .build()
                 , State.DEFAULT
         );
+        setFoundation(FOUNDATION_RELEASE);
+        double foundationX = drive.getPoseEstimate().getX();
+        logger.put("Foundation X ", String.format("%.3f", foundationX));
+        logger.put("First deposit", String.format("%.3f", clock.seconds()));
 
         // Switch claw/arm sides
         CLAW_SIDE = clawSide.RIGHT;
@@ -262,20 +284,24 @@ public class AutoRed extends LinearOpMode {
                         .build()
                 , State.TO_QUARRY
         );
-        strafeAndGrab(drive, -drive.getPoseEstimate().getY() - 33.5);
+        stone2 = drive.getPoseEstimate().getY();
+        strafeAndGrab(drive, -stone2 - 31);
         drive.update();
+        logger.put("Second pickup", String.format("%.3f", clock.seconds()));
 
         //deposit second stone
         followTrajectoryArmSync(
                 drive.trajectoryBuilder()
                         .reverse()
                         .splineTo(new Pose2d(-10, ALLEY_Y, Math.toRadians(-180)))
-                        .splineTo(new Pose2d(49, ALLEY_Y, Math.toRadians(-180)))
+                        .splineTo(new Pose2d(foundationX+1, ALLEY_Y-10, Math.toRadians(-180)))
                         .build()
                 , State.TO_FOUNDATION
         );
         deposit();
         delay(.25);
+        logString += "Second deposit " + clock.seconds() + "\n";
+        logger.put("Second deposit", String.format("%.3f", clock.seconds()));
 
         // Go back and Third Pick-Up
         followTrajectoryArmSync(
@@ -285,29 +311,71 @@ public class AutoRed extends LinearOpMode {
                         .build()
                 , State.TO_QUARRY);
         drive.update();
-        strafeAndGrab(drive, -drive.getPoseEstimate().getY() - 33.5);
+        stone3 = drive.getPoseEstimate().getY();
+        strafeAndGrab(drive, -stone3 - 31);
+        logger.put("Third pickup", String.format("%.3f", clock.seconds()));
+
 
         // Go to foundation 3
         followTrajectoryArmSync(
                 drive.trajectoryBuilder()
                         .reverse()
                         .splineTo(new Pose2d(-10, ALLEY_Y, Math.toRadians(-180)))
-                        .splineTo(new Pose2d(49, ALLEY_Y, Math.toRadians(-180)))
+                        .splineTo(new Pose2d(foundationX+2, ALLEY_Y-10, Math.toRadians(-180)))
                         .build()
                 , State.TO_FOUNDATION);
         drive.update();
 
         deposit();
         delay(.25);
+        logString += "Third deposit " + clock.seconds() + "\n";
+        logger.put("Third deposit", String.format("%.3f", clock.seconds()));
+
+        // go to fourth stone
+        followTrajectoryArmSync(
+                drive.trajectoryBuilder()
+                        .splineTo(new Pose2d(12,ALLEY_Y,Math.toRadians(-180)))
+                        .splineTo(new Pose2d(STONES_X[STONE_OPTIONS[stonePos][3]],ALLEY_Y,Math.toRadians(-180)))
+                        .build()
+                , State.TO_QUARRY);
+        drive.update();
+        strafeAndGrab(drive, -drive.getPoseEstimate().getY() - 31);
+        logger.put("Fourth pickup", String.format("%.3f", clock.seconds()));
+
+        // GO TO FOUNDATION 4
+        followTrajectoryArmSync(
+                drive.trajectoryBuilder()
+                        .reverse()
+                        .splineTo(new Pose2d(-10, ALLEY_Y, Math.toRadians(-180)))
+                        .splineTo(new Pose2d(49, ALLEY_Y-10, Math.toRadians(-180)))
+                        .build()
+                , State.TO_FOUNDATION);
+        drive.update();
+
+        deposit();
+        delay(.15);
+        logString += "Fourth deposit " + clock.seconds() + "\n";
+        logger.put("Fourth deposit", String.format("%.3f", clock.seconds()));
 
         // Park
         followTrajectoryArmSync(
-                drive.trajectoryBuilderFinish()
-                        .splineTo(new Pose2d(8, ALLEY_Y, Math.toRadians(-180)))
+                drive.trajectoryBuilder()
+                        .splineTo(new Pose2d(4, ALLEY_Y, Math.toRadians(-180)))
                         .build()
                 , State.TO_FINISH
         );
+        logString += "Final time " + clock.seconds() + "\n";
+        logger.put("Park time", String.format("%.3f", clock.seconds()));
 
+        TelemetryPacket packet = new TelemetryPacket();
+        for(Map.Entry<String, String> e : logger.entrySet()) {
+            packet.put(e.getKey(), e.getValue());
+            telemetry.addData(e.getKey(), e.getValue());
+            System.out.println(e.getKey() + " " + e.getValue());
+        }
+        dashboard.sendTelemetryPacket(packet);
+        telemetry.update();
+        //delay(200);
         if (opModeIsActive()) {
             tfod.shutdown();
 
@@ -340,9 +408,8 @@ public class AutoRed extends LinearOpMode {
                     , State.DEFAULT
             );
             LsetArm(L_ARM_GRAB);
-            delay(0.3);
             LsetClaw(L_CLAW_GRAB);
-            delay(0.3);
+            delay(0.2);
             LsetArm(L_ARM_DROP);
             followTrajectoryArmSync(
                     drive.trajectoryBuilder()
@@ -360,9 +427,8 @@ public class AutoRed extends LinearOpMode {
                     , State.DEFAULT
             );
             RsetArm(R_ARM_GRAB);
-            delay(0.3);
             RsetClaw(R_CLAW_GRAB);
-            delay(0.3);
+            delay(0.2);
             RsetArm(R_ARM_DROP);
             followTrajectoryArmSync(
                     drive.trajectoryBuilder()
