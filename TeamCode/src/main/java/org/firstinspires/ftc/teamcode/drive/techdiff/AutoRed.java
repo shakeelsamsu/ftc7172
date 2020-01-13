@@ -306,7 +306,7 @@ public class AutoRed extends LinearOpMode {
         // Go back and Third Pick-Up
         followTrajectoryArmSync(
                 drive.trajectoryBuilder()
-                        .splineTo(new Pose2d(12,ALLEY_Y,Math.toRadians(-180)))
+                        .lineTo(new Vector2d(12,ALLEY_Y), constInterp180)
                         .splineTo(new Pose2d(STONES_X[STONE_OPTIONS[stonePos][2]],ALLEY_Y,Math.toRadians(-180)))
                         .build()
                 , State.TO_QUARRY);
@@ -331,10 +331,10 @@ public class AutoRed extends LinearOpMode {
         logString += "Third deposit " + clock.seconds() + "\n";
         logger.put("Third deposit", String.format("%.3f", clock.seconds()));
 
-        // go to fourth stone
+        // go to fourth stone pickup
         followTrajectoryArmSync(
                 drive.trajectoryBuilder()
-                        .splineTo(new Pose2d(12,ALLEY_Y,Math.toRadians(-180)))
+                        .lineTo(new Vector2d(12,ALLEY_Y), constInterp180)
                         .splineTo(new Pose2d(STONES_X[STONE_OPTIONS[stonePos][3]],ALLEY_Y,Math.toRadians(-180)))
                         .build()
                 , State.TO_QUARRY);
