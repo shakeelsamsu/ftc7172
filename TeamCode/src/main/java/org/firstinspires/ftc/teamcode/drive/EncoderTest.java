@@ -23,6 +23,7 @@ public class EncoderTest extends LinearOpMode {
     public static double R_CLAW_STOW = GlideConstants.R_CLAW_STOW;
     public static double R_CLAW_GRAB = GlideConstants.R_CLAW_GRAB;
     public static double R_CLAW_RELEASE = GlideConstants.R_CLAW_RELEASE;
+    public static double R_CLAW_FOUNDATION = GlideConstants.R_CLAW_FOUNDATION;
 
     private static double R_ROTATE_SIDE = GlideConstants.R_ROTATE_SIDE;
     private static double R_ROTATE_DEPOSIT = GlideConstants.R_ROTATE_DEPOSIT;
@@ -37,6 +38,7 @@ public class EncoderTest extends LinearOpMode {
     public static double L_CLAW_STOW = GlideConstants.L_CLAW_STOW;
     public static double L_CLAW_GRAB = GlideConstants.L_CLAW_GRAB;
     public static double L_CLAW_RELEASE = GlideConstants.L_CLAW_RELEASE;
+    public static double L_CLAW_FOUNDATION= GlideConstants.L_CLAW_FOUNDATION;
 
     public static double L_ROTATE_SIDE = GlideConstants.L_ROTATE_SIDE;
     public static double L_ROTATE_DEPOSIT = GlideConstants.L_ROTATE_DEPOSIT;
@@ -68,7 +70,8 @@ public class EncoderTest extends LinearOpMode {
             else if (gamepad1.a) {LsetArm(L_ARM_OVER);RsetArm(R_ARM_OVER);}
             else {LsetArm(L_ARM_DROP);RsetArm(R_ARM_DROP);}
 
-            if (gamepad1.b) {LsetClaw(L_CLAW_GRAB);RsetClaw(R_CLAW_GRAB);}
+            if(gamepad1.x) {LsetClaw(L_CLAW_FOUNDATION); RsetClaw(R_CLAW_FOUNDATION);}
+            else if (gamepad1.b) {LsetClaw(L_CLAW_GRAB);RsetClaw(R_CLAW_GRAB);}
             else if (gamepad1.dpad_up) {LsetClaw(L_CLAW_STOW);RsetClaw(R_CLAW_STOW);}
             else {LsetClaw(L_CLAW_RELEASE);RsetClaw(R_CLAW_RELEASE);}
 

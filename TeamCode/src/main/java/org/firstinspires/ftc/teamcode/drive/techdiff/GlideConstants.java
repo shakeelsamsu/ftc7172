@@ -23,11 +23,12 @@ public class GlideConstants {
     public static double R_ARM_STOW = 0.21 ;
     public static double R_ARM_GRAB = 0.66 ;
     public static double R_ARM_OVER = 0.58;
-    public static double R_ARM_DROP = 0.35;
+    public static double R_ARM_DROP = 0.45;
 
     public static double R_CLAW_STOW = 0.85;
     public static double R_CLAW_GRAB = 0.8;
     public static double R_CLAW_RELEASE = 0.3;
+    public static double R_CLAW_FOUNDATION = 0.6;
 
     public static double R_ROTATE_SIDE = 0.47;
     public static double R_ROTATE_DEPOSIT = 0.105;
@@ -40,12 +41,13 @@ public class GlideConstants {
     public static double L_ARM_STOW = 0.76;
     public static double L_ARM_GRAB = 0.3;
     public static double L_ARM_OVER = 0.38;
-    public static double L_ARM_DROP = 0.62;
+    public static double L_ARM_DROP = 0.50;
 
     // done
     public static double L_CLAW_STOW = 0.2;
     public static double L_CLAW_GRAB = 0.25;
     public static double L_CLAW_RELEASE = 0.72;
+    public static double L_CLAW_FOUNDATION = 0.55;
 
     public static double L_ROTATE_SIDE = 0.165;
     public static double L_ROTATE_DEPOSIT = 0.53;

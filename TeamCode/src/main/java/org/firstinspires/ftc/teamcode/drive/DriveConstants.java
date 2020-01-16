@@ -88,6 +88,10 @@ public class DriveConstants {
         30,25,0,Math.toRadians(220),Math.toRadians(320), 0
     );
 
+    public static DriveConstraints MED_CONSTRAINTS = new DriveConstraints(
+            40,40,0,Math.toRadians(220),Math.toRadians(320), 0
+    );
+
 //    public static DriveConstraints NEW_CONSTRAINTS = new MecanumConstraints(BASE_CONSTRAINTS_TEMP, TRACK_WIDTH, 12);
 //
 //    public static DriveConstraints BASE_CONSTRAINTS = NEW_CONSTRAINTS;

@@ -26,7 +26,6 @@ import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.VuforiaLocalizer;
 import org.firstinspires.ftc.robotcore.external.tfod.Recognition;
 import org.firstinspires.ftc.robotcore.external.tfod.TFObjectDetector;
-import org.firstinspires.ftc.teamcode.drive.techdiff.GlideConstants;
 import org.firstinspires.ftc.teamcode.drive.mecanum.SampleMecanumDriveBase;
 import org.firstinspires.ftc.teamcode.drive.mecanum.SampleMecanumDriveREVOptimized;
 
@@ -37,7 +36,7 @@ import java.util.Map;
 
 @Config
 @Autonomous
-public class AutoRed extends LinearOpMode {
+public class AutoRedStack extends LinearOpMode {
     ElapsedTime timer = new ElapsedTime();
     public static double stone1 = 0;
     public static double stone2 = 0;
@@ -51,7 +50,7 @@ public class AutoRed extends LinearOpMode {
     public static double R_CLAW_STOW = GlideConstants.R_CLAW_STOW;
     public static double R_CLAW_GRAB = GlideConstants.R_CLAW_GRAB;
     public static double R_CLAW_RELEASE = GlideConstants.R_CLAW_RELEASE;
-    public static double R_CLAW_FOUNDATION = GlideConstants.R_CLAW_FOUNDATION;
+    private static double R_CLAW_FOUNDATION = GlideConstants.R_CLAW_FOUNDATION;
 
     private static double R_ROTATE_SIDE = GlideConstants.R_ROTATE_SIDE;
     private static double R_ROTATE_DEPOSIT = GlideConstants.R_ROTATE_DEPOSIT;
@@ -70,13 +69,15 @@ public class AutoRed extends LinearOpMode {
     public static double L_CLAW_STOW = GlideConstants.L_CLAW_STOW;
     public static double L_CLAW_GRAB = GlideConstants.L_CLAW_GRAB;
     public static double L_CLAW_RELEASE = GlideConstants.L_CLAW_RELEASE;
-    public static double L_CLAW_FOUNDATION = GlideConstants.L_CLAW_FOUNDATION;
+    private static double L_CLAW_FOUNDATION = GlideConstants.L_CLAW_FOUNDATION;
 
     public static double L_ROTATE_SIDE = GlideConstants.L_ROTATE_SIDE;
     public static double L_ROTATE_DEPOSIT = GlideConstants.L_ROTATE_DEPOSIT;
     public static double L_ROTATE_BACK = GlideConstants.L_ROTATE_BACK;
 
     private int FOUNDATION_OFFSET = -3;
+    private int SECOND_STONE_OFFSET = 0;
+    private int THIRD_STONE_OFFSET = -3;
 
     private static double ALLEY_Y = -39;
 
@@ -222,13 +223,13 @@ public class AutoRed extends LinearOpMode {
                 drive.trajectoryBuilder()
                         .strafeTo(new Vector2d(STONES_X[STONE_OPTIONS[stonePos][0]], -38))
                         .build()
-                ,State.DEFAULT
+                , State.DEFAULT
         );
         followTrajectoryArmSync(
                 drive.trajectoryBuilder()
                         .strafeTo(new Vector2d(STONES_X[STONE_OPTIONS[stonePos][0]], -38))
                         .build()
-                ,State.DEFAULT
+                , State.DEFAULT
         );
         stone1 = drive.getPoseEstimate().getY();
         strafeAndGrab(drive,-stone1-32);
@@ -284,7 +285,7 @@ public class AutoRed extends LinearOpMode {
         followTrajectoryArmSync(
                 drive.trajectoryBuilder()
                         .splineTo(new Pose2d(12, ALLEY_Y, Math.toRadians(-180)), constInterp180)
-                        .splineTo(new Pose2d(STONES_X[STONE_OPTIONS[stonePos][1]],ALLEY_Y+1,Math.toRadians(-180)), constInterp180)
+                        .splineTo(new Pose2d(STONES_X[STONE_OPTIONS[stonePos][1]],ALLEY_Y,Math.toRadians(-180)), constInterp180)
                         .build()
                 , State.TO_QUARRY
         );
@@ -298,12 +299,13 @@ public class AutoRed extends LinearOpMode {
                 drive.trajectoryBuilder()
                         .reverse()
                         .splineTo(new Pose2d(-10, ALLEY_Y, Math.toRadians(-180)))
-                        .splineTo(new Pose2d(foundationX+FOUNDATION_OFFSET, ALLEY_Y-10, Math.toRadians(-180)))
+                        .splineTo(new Pose2d(foundationX+1, ALLEY_Y-8, Math.toRadians(-180)))
                         .build()
                 , State.TO_FOUNDATION
         );
         deposit();
         delay(.25);
+        foundationX = drive.getPoseEstimate().getX();
         logString += "Second deposit " + clock.seconds() + "\n";
         logger.put("Second deposit", String.format("%.3f", clock.seconds()));
 
@@ -325,13 +327,13 @@ public class AutoRed extends LinearOpMode {
                 drive.trajectoryBuilder()
                         .reverse()
                         .splineTo(new Pose2d(-10, ALLEY_Y, Math.toRadians(-180)))
-                        .splineTo(new Pose2d(foundationX+FOUNDATION_OFFSET, ALLEY_Y-10, Math.toRadians(-180)))
+                        .splineTo(new Pose2d(foundationX-3, ALLEY_Y-8, Math.toRadians(-180)))
                         .build()
                 , State.TO_FOUNDATION);
         drive.update();
-
         deposit();
         delay(.25);
+        foundationX = drive.getPoseEstimate().getX();
         logString += "Third deposit " + clock.seconds() + "\n";
         logger.put("Third deposit", String.format("%.3f", clock.seconds()));
 
@@ -401,14 +403,18 @@ public class AutoRed extends LinearOpMode {
     public void deposit() {
         if (CLAW_SIDE == clawSide.RIGHT) {
             RsetRotate(R_ROTATE_DEPOSIT);
+            RsetArm(R_ARM_DROP);
             delay(0.1);
             RsetClaw(R_CLAW_FOUNDATION);
-//            RsetClaw(R_CLAW_RELEASE);
+//            delay(0.2);
+//            RsetArm(R_ARM_GRAB);
         } else {
             LsetRotate(L_ROTATE_DEPOSIT);
+            LsetArm(L_ARM_DROP);
             delay(0.1);
-            RsetClaw(L_CLAW_FOUNDATION);
-//            LsetClaw(L_CLAW_RELEASE);
+            LsetClaw(L_CLAW_FOUNDATION);
+//            delay(0.2);
+//            LsetArm(L_ARM_GRAB);
         }
     }
 
@@ -519,8 +525,17 @@ public class AutoRed extends LinearOpMode {
             switch (s) {
                 case TO_FOUNDATION:
                     if (drive.getPoseEstimate().getX() > -40) {
-                        if (CLAW_SIDE == clawSide.RIGHT) RsetRotate(R_ROTATE_BACK);
-                        else LsetRotate(L_ROTATE_BACK);
+                        if (CLAW_SIDE == clawSide.RIGHT) {
+                            RsetRotate(R_ROTATE_BACK);
+                            if(drive.getPoseEstimate().getX() > -10)
+                                RsetArm(R_ARM_DROP);
+                            else
+                                RsetArm(R_ARM_STOW);
+                        }
+                        else {
+                            LsetRotate(L_ROTATE_BACK);
+                            LsetArm(L_ARM_STOW);
+                        }
                     }
                     break;
                 case TO_QUARRY:
@@ -529,9 +544,9 @@ public class AutoRed extends LinearOpMode {
                         RsetArm(R_ARM_OVER);
                         RsetRotate(R_ROTATE_SIDE);
                     }
-                    if(drive.getPoseEstimate().getX() > 15) {
-                        RsetClaw(R_CLAW_STOW);
-                    }
+//                    if(drive.getPoseEstimate().getX() > 15) {
+//                        RsetClaw(R_CLAW_STOW);
+//                    }
                     break;
                 case TO_FINISH:
                     RsetRotate(R_ROTATE_SIDE);
