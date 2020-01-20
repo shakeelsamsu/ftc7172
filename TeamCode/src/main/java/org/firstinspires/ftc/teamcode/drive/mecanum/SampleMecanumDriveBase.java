@@ -1,6 +1,7 @@
 package org.firstinspires.ftc.teamcode.drive.mecanum;
 
 import static org.firstinspires.ftc.teamcode.drive.DriveConstants.BASE_CONSTRAINTS;
+import static org.firstinspires.ftc.teamcode.drive.DriveConstants.FASTER_CONSTRAINTS;
 import static org.firstinspires.ftc.teamcode.drive.DriveConstants.FINISH_CONSTRAINTS;
 import static org.firstinspires.ftc.teamcode.drive.DriveConstants.MED_CONSTRAINTS;
 import static org.firstinspires.ftc.teamcode.drive.DriveConstants.SLOW_CONSTRAINTS;
@@ -64,6 +65,7 @@ public abstract class SampleMecanumDriveBase extends MecanumDrive {
     private DriveConstraints constraints;
     private DriveConstraints constraintsSlow;
     private DriveConstraints constraintsFast;
+    private DriveConstraints constraintsFaster;
     private DriveConstraints constraintsFinish;
     public DriveConstraints constraintsMed;
     private TrajectoryFollower follower;
@@ -88,6 +90,7 @@ public abstract class SampleMecanumDriveBase extends MecanumDrive {
         constraints = new MecanumConstraints(BASE_CONSTRAINTS, TRACK_WIDTH);
         constraintsSlow = new MecanumConstraints(SLOW_CONSTRAINTS, TRACK_WIDTH);
         constraintsFast = new MecanumConstraints(FAST_CONSTRAINTS, TRACK_WIDTH);
+        constraintsFaster = new MecanumConstraints(FASTER_CONSTRAINTS, TRACK_WIDTH);
         constraintsMed = new MecanumConstraints(MED_CONSTRAINTS, TRACK_WIDTH);
         follower = new HolonomicPIDVAFollower(AXIAL_PID, LATERAL_PID, HEADING_PID);
     }
@@ -106,6 +109,10 @@ public abstract class SampleMecanumDriveBase extends MecanumDrive {
 
     public TrajectoryBuilder trajectoryBuilderFast() {
         return new TrajectoryBuilder(getPoseEstimate(), constraintsFast);
+    }
+
+    public TrajectoryBuilder trajectoryBuilderFaster() {
+        return new TrajectoryBuilder(getPoseEstimate(), constraintsFaster);
     }
 
     public TrajectoryBuilder trajectoryBuilderMed() {
