@@ -36,7 +36,7 @@ import java.util.Map;
 
 @Config
 @Autonomous
-public class AutoRedStack extends LinearOpMode {
+public class AutoRedStackTesting extends LinearOpMode {
     ElapsedTime timer = new ElapsedTime();
     public static double stone1 = 0;
     public static double stone2 = 0;
@@ -80,6 +80,7 @@ public class AutoRedStack extends LinearOpMode {
     private int THIRD_STONE_OFFSET = -3;
 
     private static double ALLEY_Y = -39;
+    private static double STONE_OFFSET = 6.5;
 
     ConstantInterpolator constInterp = new ConstantInterpolator(0);
     ConstantInterpolator constInterp180 = new ConstantInterpolator(Math.toRadians(-180));
@@ -100,8 +101,8 @@ public class AutoRedStack extends LinearOpMode {
     private ElapsedTime clock = new ElapsedTime();
     // good: 0 1 5
 
-    public static final double[] STONES_X = {-31.5, -37.5, -45.5, -44, -52, -64};
-    public static final int[][] STONE_OPTIONS = {{5, 0, 1}, {5, 2, 0, 1}, {4, 1, 0, 2}, {3, 0, 1, 2}};
+    public static final double[] STONES_X = {-31.5, -37.5, -44.5, -44, -52, -64};
+    public static final int[][] STONE_OPTIONS = {{5, 0, 1, 2}, {5, 2, 0, 1, 3}, {4, 1, 0, 2, 3}, {3, 0, 1, 2, 4}};
 
     private Servo rarm;
     private Servo rrotate;
@@ -215,8 +216,8 @@ public class AutoRedStack extends LinearOpMode {
         delay(.25);
         drive.setPoseEstimate(new Pose2d(-38, -63, 0));
         LsetRotate(L_ROTATE_SIDE);
-        LsetClaw(L_CLAW_STOW);
-        LsetArm(L_ARM_STOW);
+        LsetClaw(L_CLAW_RELEASE);
+        LsetArm(L_ARM_OVER);
         RsetRotate(R_ROTATE_SIDE);
         RsetArm(R_ARM_STOW);
         RsetClaw(R_CLAW_STOW);
@@ -231,12 +232,15 @@ public class AutoRedStack extends LinearOpMode {
         );
         followTrajectoryArmSync(
                 drive.trajectoryBuilderFast()
-                        .strafeTo(new Vector2d(STONES_X[STONE_OPTIONS[stonePos][0]], -38))
+                        .strafeTo(new Vector2d(STONES_X[STONE_OPTIONS[stonePos][0]], ALLEY_Y+STONE_OFFSET))
                         .build()
                 , State.DEFAULT
         );
         stone1 = drive.getPoseEstimate().getY();
-        strafeAndGrab(drive,-stone1-32);
+        if(Math.abs(stone1 - 31) > 3)
+            strafeAndGrab(drive,-stone1-32);
+        else
+            grab();
         drive.update();
         logString += "First pickup " + clock.seconds() + " ";
         logger.put("First pickup", String.format("%.3f", clock.seconds()));
@@ -253,7 +257,7 @@ public class AutoRedStack extends LinearOpMode {
         // Move Foundation and deposit
         followTrajectoryArmSync(
                 drive.trajectoryBuilderSlow()
-                        .back(Math.abs(drive.getPoseEstimate().getY() + 30))
+                        .back(Math.abs(drive.getPoseEstimate().getY() + 28))
                         .build()
                 , State.DEFAULT
         );
@@ -266,8 +270,8 @@ public class AutoRedStack extends LinearOpMode {
         );
         followTrajectoryArmSync(
                 drive.trajectoryBuilder()
-                .splineTo(new Pose2d(24, -47, Math.toRadians((-180))))
-                .build()
+                        .splineTo(new Pose2d(24, -47, Math.toRadians((-180))))
+                        .build()
                 , State.DEFAULT
         );
         deposit();
@@ -290,13 +294,16 @@ public class AutoRedStack extends LinearOpMode {
         // Go back and Second Pick-Up
         followTrajectoryArmSync(
                 drive.trajectoryBuilder()
-                        .splineTo(new Pose2d(12, ALLEY_Y, Math.toRadians(-180)), constInterp180)
-                        .splineTo(new Pose2d(STONES_X[STONE_OPTIONS[stonePos][1]],ALLEY_Y,Math.toRadians(-180)), constInterp180)
+                        .lineTo(new Vector2d(12, ALLEY_Y), constInterp180)
+                        .splineTo(new Pose2d(STONES_X[STONE_OPTIONS[stonePos][1]],ALLEY_Y+STONE_OFFSET,Math.toRadians(-180)), constInterp180)
                         .build()
                 , State.TO_QUARRY
         );
         stone2 = drive.getPoseEstimate().getY();
-        strafeAndGrab(drive, -stone2 - 31);
+        if(Math.abs(-stone2 - 32) > 3)
+            strafeAndGrab(drive,-stone2-32);
+        else
+            grab();
         drive.update();
         logger.put("Second pickup", String.format("%.3f", clock.seconds()));
 
@@ -304,8 +311,8 @@ public class AutoRedStack extends LinearOpMode {
         followTrajectoryArmSync(
                 drive.trajectoryBuilder()
                         .reverse()
-                        .splineTo(new Pose2d(-10, ALLEY_Y, Math.toRadians(-180)))
-                        .splineTo(new Pose2d(foundationX+1, ALLEY_Y-8, Math.toRadians(-180)))
+                        .lineTo(new Vector2d(-10, ALLEY_Y), constInterp180)
+                        .lineTo(new Vector2d(foundationX+1, ALLEY_Y-4),constInterp180)
                         .build()
                 , State.TO_FOUNDATION
         );
@@ -319,12 +326,15 @@ public class AutoRedStack extends LinearOpMode {
         followTrajectoryArmSync(
                 drive.trajectoryBuilder()
                         .lineTo(new Vector2d(12,ALLEY_Y), constInterp180)
-                        .splineTo(new Pose2d(STONES_X[STONE_OPTIONS[stonePos][2]],ALLEY_Y,Math.toRadians(-180)))
+                        .splineTo(new Pose2d(STONES_X[STONE_OPTIONS[stonePos][2]],ALLEY_Y+STONE_OFFSET,Math.toRadians(-180)))
                         .build()
                 , State.TO_QUARRY);
         drive.update();
         stone3 = drive.getPoseEstimate().getY();
-        strafeAndGrab(drive, -stone3 - 32);
+        if(Math.abs(-stone3 - 32) > 3)
+            strafeAndGrab(drive,-stone3-32);
+        else
+            grab();
         logger.put("Third pickup", String.format("%.3f", clock.seconds()));
 
 
@@ -332,8 +342,8 @@ public class AutoRedStack extends LinearOpMode {
         followTrajectoryArmSync(
                 drive.trajectoryBuilder()
                         .reverse()
-                        .splineTo(new Pose2d(-10, ALLEY_Y, Math.toRadians(-180)))
-                        .splineTo(new Pose2d(foundationX-3, ALLEY_Y-8, Math.toRadians(-180)))
+                        .lineTo(new Vector2d(-10, ALLEY_Y), constInterp180)
+                        .lineTo(new Vector2d(foundationX-3, ALLEY_Y-8), constInterp180)
                         .build()
                 , State.TO_FOUNDATION);
         drive.update();
@@ -347,18 +357,22 @@ public class AutoRedStack extends LinearOpMode {
         followTrajectoryArmSync(
                 drive.trajectoryBuilder()
                         .lineTo(new Vector2d(12,ALLEY_Y), constInterp180)
-                        .splineTo(new Pose2d(STONES_X[STONE_OPTIONS[stonePos][3]],ALLEY_Y,Math.toRadians(-180)))
+                        .splineTo(new Pose2d(STONES_X[STONE_OPTIONS[stonePos][3]],ALLEY_Y+STONE_OFFSET,Math.toRadians(-180)))
                         .build()
                 , State.TO_QUARRY);
         drive.update();
-        strafeAndGrab(drive, -drive.getPoseEstimate().getY() - 31);
+        double stone4 = drive.getPoseEstimate().getY();
+        if(Math.abs(-stone4 - 32) > 3)
+            strafeAndGrab(drive,-stone4-32);
+        else
+            grab();
         logger.put("Fourth pickup", String.format("%.3f", clock.seconds()));
 
         // GO TO FOUNDATION 4
         followTrajectoryArmSync(
                 drive.trajectoryBuilder()
                         .reverse()
-                        .splineTo(new Pose2d(-10, ALLEY_Y, Math.toRadians(-180)))
+                        .lineTo(new Vector2d(-10, ALLEY_Y), constInterp180)
                         .splineTo(new Pose2d(30, ALLEY_Y-10, Math.toRadians(-180)))
                         .build()
                 , State.TO_FOUNDATION);
@@ -472,18 +486,18 @@ public class AutoRedStack extends LinearOpMode {
         if (CLAW_SIDE == clawSide.LEFT) {
             LsetArm(L_ARM_OVER);
             LsetClaw(L_CLAW_RELEASE);
-            delay(0.1);
+            delay(0.2);
             LsetArm(L_ARM_GRAB);
             LsetClaw(L_CLAW_GRAB);
-            delay(0.3);
+            delay(0.4);
             LsetArm(L_ARM_STOW);
         } else {
             RsetArm(R_ARM_OVER);
             RsetClaw(R_CLAW_RELEASE);
-            delay(0.1);
+            delay(0.2);
             RsetArm(R_ARM_GRAB);
             RsetClaw(R_CLAW_GRAB);
-            delay(0.3);
+            delay(0.4);
             RsetArm(R_ARM_STOW);
         }
     }
