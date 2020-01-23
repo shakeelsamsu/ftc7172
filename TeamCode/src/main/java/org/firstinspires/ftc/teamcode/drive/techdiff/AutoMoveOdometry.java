@@ -3,12 +3,13 @@ package org.firstinspires.ftc.teamcode.drive.techdiff;
 import com.acmerobotics.roadrunner.geometry.Pose2d;
 import com.acmerobotics.roadrunner.geometry.Vector2d;
 import com.acmerobotics.roadrunner.path.heading.ConstantInterpolator;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
 import org.firstinspires.ftc.teamcode.drive.mecanum.SampleMecanumDriveBase;
 import org.firstinspires.ftc.teamcode.drive.mecanum.SampleMecanumDriveREVOptimized;
-
+@Disabled
 @TeleOp
 public class AutoMoveOdometry extends LinearOpMode {
 

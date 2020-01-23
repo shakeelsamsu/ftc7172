@@ -7,6 +7,7 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.Servo;
 
 import org.firstinspires.ftc.teamcode.drive.techdiff.GlideConstants;
+import org.openftc.revextensions2.ExpansionHubEx;
 
 @Config
 @TeleOp
@@ -49,7 +50,12 @@ public class EncoderTest extends LinearOpMode {
     private Servo larm;
     private Servo lclaw;
     private Servo lrotate;
+    private ExpansionHubEx hub1;
+    private ExpansionHubEx hub2;
+
+
     public void runOpMode() {
+
         a = hardwareMap.get(DcMotor.class, "lb");
         b = hardwareMap.get(DcMotor.class, "rb");
         c = hardwareMap.get(DcMotor.class, "lf");
@@ -63,6 +69,9 @@ public class EncoderTest extends LinearOpMode {
         larm = hardwareMap.get(Servo.class, "larm");
         lrotate = hardwareMap.get(Servo.class, "lrotate");
         lclaw = hardwareMap.get(Servo.class, "lclaw");
+        hub1 = hardwareMap.get(ExpansionHubEx.class, "Expansion Hub 1"); // 7172
+        hub2 = hardwareMap.get(ExpansionHubEx.class, "Expansion Hub 2"); // 7172
+
         waitForStart();
         while (opModeIsActive()) {
             if (gamepad1.x) {LsetArm(L_ARM_STOW);RsetArm(R_ARM_STOW);}
@@ -92,7 +101,10 @@ public class EncoderTest extends LinearOpMode {
             telemetry.addData("lb", a.getCurrentPosition());
             telemetry.addData("lf", c.getCurrentPosition());
             telemetry.addData("rf", d.getCurrentPosition());
+            telemetry.addData("hub1 servo current", hub1.getServoBusCurrentDraw(ExpansionHubEx.CurrentDrawUnits.AMPS));
+            telemetry.addData("hub2 servo current", hub2.getServoBusCurrentDraw(ExpansionHubEx.CurrentDrawUnits.AMPS));
             telemetry.update();
+
         }
     }
     public void RsetArm(double p) {

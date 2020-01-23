@@ -1,6 +1,7 @@
 package org.firstinspires.ftc.teamcode.drive.opmode;
 
 import com.acmerobotics.dashboard.config.Config;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.Servo;
@@ -11,6 +12,7 @@ import org.firstinspires.ftc.teamcode.drive.mecanum.SampleMecanumDriveREVOptimiz
 /*
  * This is a simple routine to test turning capabilities.
  */
+@Disabled
 @Config
 @TeleOp(group = "drive")
 public class TurnTest extends LinearOpMode {

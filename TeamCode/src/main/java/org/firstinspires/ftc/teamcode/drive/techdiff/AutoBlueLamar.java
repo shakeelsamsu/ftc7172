@@ -9,7 +9,6 @@ import com.acmerobotics.roadrunner.path.heading.ConstantInterpolator;
 import com.acmerobotics.roadrunner.path.heading.LinearInterpolator;
 import com.acmerobotics.roadrunner.trajectory.Trajectory;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
-import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.Servo;
@@ -27,6 +26,7 @@ import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.VuforiaLocalizer;
 import org.firstinspires.ftc.robotcore.external.tfod.Recognition;
 import org.firstinspires.ftc.robotcore.external.tfod.TFObjectDetector;
+import org.firstinspires.ftc.teamcode.drive.techdiff.GlideConstants;
 import org.firstinspires.ftc.teamcode.drive.mecanum.SampleMecanumDriveBase;
 import org.firstinspires.ftc.teamcode.drive.mecanum.SampleMecanumDriveREVOptimized;
 
@@ -34,15 +34,11 @@ import java.nio.ByteBuffer;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-@Disabled
+
 @Config
 @Autonomous
-public class AutoRedStackTesting extends LinearOpMode {
+public class AutoBlueLamar extends LinearOpMode {
     ElapsedTime timer = new ElapsedTime();
-    public static double stone1 = 0;
-    public static double stone2 = 0;
-    public static double stone3 = 0;
-
     private static double R_ARM_STOW = GlideConstants.R_ARM_STOW;
     private static double R_ARM_GRAB = GlideConstants.R_ARM_GRAB;
     private static double R_ARM_OVER = GlideConstants.R_ARM_OVER;
@@ -51,7 +47,6 @@ public class AutoRedStackTesting extends LinearOpMode {
     public static double R_CLAW_STOW = GlideConstants.R_CLAW_STOW;
     public static double R_CLAW_GRAB = GlideConstants.R_CLAW_GRAB;
     public static double R_CLAW_RELEASE = GlideConstants.R_CLAW_RELEASE;
-    private static double R_CLAW_FOUNDATION = GlideConstants.R_CLAW_FOUNDATION;
 
     private static double R_ROTATE_SIDE = GlideConstants.R_ROTATE_SIDE;
     private static double R_ROTATE_DEPOSIT = GlideConstants.R_ROTATE_DEPOSIT;
@@ -70,22 +65,14 @@ public class AutoRedStackTesting extends LinearOpMode {
     public static double L_CLAW_STOW = GlideConstants.L_CLAW_STOW;
     public static double L_CLAW_GRAB = GlideConstants.L_CLAW_GRAB;
     public static double L_CLAW_RELEASE = GlideConstants.L_CLAW_RELEASE;
-    private static double L_CLAW_FOUNDATION = GlideConstants.L_CLAW_FOUNDATION;
 
     public static double L_ROTATE_SIDE = GlideConstants.L_ROTATE_SIDE;
     public static double L_ROTATE_DEPOSIT = GlideConstants.L_ROTATE_DEPOSIT;
     public static double L_ROTATE_BACK = GlideConstants.L_ROTATE_BACK;
 
-    private int FOUNDATION_OFFSET = -3;
-    private int SECOND_STONE_OFFSET = 0;
-    private int THIRD_STONE_OFFSET = -3;
-
-    private static double ALLEY_Y = -39;
-    private static double STONE_OFFSET = 6.5;
-
     ConstantInterpolator constInterp = new ConstantInterpolator(0);
-    ConstantInterpolator constInterp180 = new ConstantInterpolator(Math.toRadians(-180));
-    LinearInterpolator linInterp = new LinearInterpolator(0, Math.toRadians(-90));
+    ConstantInterpolator constInterp180 = new ConstantInterpolator(Math.toRadians(180));
+    LinearInterpolator linInterp = new LinearInterpolator(0,Math.toRadians(90));
 
     enum State {
         TO_FOUNDATION,
@@ -93,17 +80,13 @@ public class AutoRedStackTesting extends LinearOpMode {
         TO_FINISH,
         DEFAULT
     }
-
     enum Claw {
         LEFT,
         RIGHT
     }
-    private FtcDashboard dashboard;
-    private ElapsedTime clock = new ElapsedTime();
-    // good: 0 1 5
 
-    public static final double[] STONES_X = {-31.5, -37.5, -44.5, -44, -52, -64};
-    public static final int[][] STONE_OPTIONS = {{5, 0, 1, 2}, {5, 2, 0, 1, 3}, {4, 1, 0, 2, 3}, {3, 0, 1, 2, 4}};
+    public static final double[] STONES_X = {-29.5, -37.5, -45.5, -41, -52, -60};
+    public static final int[][] STONE_OPTIONS = {{5, 0, 1}, {5, 2, 0, 1}, {4, 1, 0, 2}, {3, 0, 1, 2}};
 
     private Servo rarm;
     private Servo rrotate;
@@ -118,7 +101,7 @@ public class AutoRedStackTesting extends LinearOpMode {
     private SampleMecanumDriveBase drive;
     private State state;
     private Claw clawSide;
-    private Claw CLAW_SIDE = clawSide.LEFT;
+    private Claw CLAW_SIDE = clawSide.RIGHT;
     private ElapsedTime liftClock = new ElapsedTime();
 
     private static final String TFOD_MODEL_ASSET = "Skystone.tflite";
@@ -132,10 +115,6 @@ public class AutoRedStackTesting extends LinearOpMode {
     private int stoneTop = 0;
     private double stoneHeading = 0;
 
-    private boolean foundationReached = false;
-    private double foundationX = 0;
-    private final double DEPOSIT_OFFSET = -5;
-
     private VuforiaLocalizer vuforia;
     private TFObjectDetector tfod;
 
@@ -143,7 +122,9 @@ public class AutoRedStackTesting extends LinearOpMode {
 
     enum Mode {TF, AVG, MANUAL}
 
-    ;
+    private FtcDashboard dashboard;
+    public HashMap<String, String> logger = new HashMap<String, String>();
+
     boolean lastDUp = false;
     boolean lastDDown = false;
     boolean lastDRight = false;
@@ -158,14 +139,19 @@ public class AutoRedStackTesting extends LinearOpMode {
     int row = 300;
     int manualPosition = 1;
 
-    public String logString = "";
+    ElapsedTime clock;
 
-    public HashMap<String, String> logger = new HashMap<String, String>();
+    double foundationX = 0;
+    boolean foundationReached = false;
+    private final double DEPOSIT_OFFSET = -5;
+
+    final int ALLEY_Y = 39;
 
     public void runOpMode() {
         dashboard = FtcDashboard.getInstance();
         dashboard.setTelemetryTransmissionInterval(25);
         timer = new ElapsedTime();
+        clock = new ElapsedTime();
         drive = new SampleMecanumDriveREVOptimized(hardwareMap);
         rarm = hardwareMap.get(Servo.class, "rarm");
         rrotate = hardwareMap.get(Servo.class, "rrotate");
@@ -181,7 +167,6 @@ public class AutoRedStackTesting extends LinearOpMode {
         lift2.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         int stonePos = 5;
 
-        // Vision
         initVuforia();
         telemetry.update();
         if (ClassFactory.getInstance().canCreateTFObjectDetector()) {
@@ -211,14 +196,14 @@ public class AutoRedStackTesting extends LinearOpMode {
             telemetry.addData("position", stonePos = getPosition());
             telemetry.update();
         }
-        clock.reset();
         liftClock.reset();
+        clock.reset();
         lift1.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        delay(.25);
-        drive.setPoseEstimate(new Pose2d(-38, -63, 0));
+        delay(0.25);
+        drive.setPoseEstimate(new Pose2d(-38, 63, 0));
         LsetRotate(L_ROTATE_SIDE);
-        LsetClaw(L_CLAW_RELEASE);
-        LsetArm(L_ARM_OVER);
+        LsetClaw(L_CLAW_STOW);
+        LsetArm(L_ARM_STOW);
         RsetRotate(R_ROTATE_SIDE);
         RsetArm(R_ARM_STOW);
         RsetClaw(R_CLAW_STOW);
@@ -227,180 +212,165 @@ public class AutoRedStackTesting extends LinearOpMode {
         // First Pick-Up
         followTrajectoryArmSync(
                 drive.trajectoryBuilderFast()
-                        .strafeTo(new Vector2d(STONES_X[STONE_OPTIONS[stonePos][0]], -38))
+                        .strafeTo(new Vector2d(STONES_X[STONE_OPTIONS[stonePos][0]], 38))
                         .build()
                 , State.DEFAULT
         );
         followTrajectoryArmSync(
                 drive.trajectoryBuilderFast()
-                        .strafeTo(new Vector2d(STONES_X[STONE_OPTIONS[stonePos][0]], ALLEY_Y+STONE_OFFSET))
+                        .strafeTo(new Vector2d(STONES_X[STONE_OPTIONS[stonePos][0]], 38))
                         .build()
                 , State.DEFAULT
         );
-        stone1 = drive.getPoseEstimate().getY();
-        if(Math.abs(stone1 - 31) > 3)
-            strafeAndGrab(drive,-stone1-32);
-        else
-            grab();
+        double stone1 = drive.getPoseEstimate().getY();
+        strafeAndGrab(drive,stone1-33);
         drive.update();
-        logString += "First pickup " + clock.seconds() + " ";
         logger.put("First pickup", String.format("%.3f", clock.seconds()));
+        drive.update();
 
         // Go to Foundation
         followTrajectoryArmSync(
                 drive.trajectoryBuilder()
-                        .lineTo(new Vector2d(10, -38))
-                        .lineTo(new Vector2d(50, -40), linInterp)
+                        .lineTo(new Vector2d(10, 38))
+                        .lineTo(new Vector2d(48, 42), linInterp)
                         .build()
                 , State.TO_FOUNDATION);
         drive.update();
 
         // Move Foundation and deposit
-        followTrajectoryArmSync(
+        drive.followTrajectorySync(
                 drive.trajectoryBuilderSlow()
-                        .back(Math.abs(drive.getPoseEstimate().getY() + 28))
+                        .back(drive.getPoseEstimate().getY()-29.5)
                         .build()
-                , State.DEFAULT
         );
         setFoundation(FOUNDATION_GRAB);
         followTrajectoryArmSync(
-                drive.trajectoryBuilder()
-                        .splineTo(new Pose2d(24, -47, Math.toRadians(-180)))
+                drive.trajectoryBuilderFaster()
+                        .splineTo(new Pose2d(24,48,Math.toRadians(180)))
                         .build()
                 , State.DEFAULT
         );
         followTrajectoryArmSync(
                 drive.trajectoryBuilder()
-                        .splineTo(new Pose2d(24, -47, Math.toRadians((-180))))
+                        .splineTo(new Pose2d(24,48,Math.toRadians(180)))
                         .build()
                 , State.DEFAULT
         );
+
+
         deposit();
         delay(0.2);
-        LsetClaw(L_CLAW_RELEASE);
+
         setFoundation(FOUNDATION_RELEASE);
+        RsetClaw(R_CLAW_RELEASE);
         foundationX = drive.getPoseEstimate().getX();
         foundationReached = true;
         logger.put("Foundation X ", String.format("%.3f", foundationX));
         logger.put("First deposit", String.format("%.3f", clock.seconds()));
 
+
+
         // Switch claw/arm sides
-        CLAW_SIDE = clawSide.RIGHT;
-        LsetRotate(L_ROTATE_SIDE);
-        LsetArm(L_ARM_STOW);
-        LsetClaw(L_CLAW_STOW);
+        CLAW_SIDE = clawSide.LEFT;
+        RsetRotate(R_ROTATE_SIDE);
         RsetArm(R_ARM_STOW);
         RsetClaw(R_CLAW_STOW);
+        LsetArm(L_ARM_STOW);
+        LsetClaw(L_CLAW_STOW);
 
         // Go back and Second Pick-Up
         followTrajectoryArmSync(
                 drive.trajectoryBuilder()
-                        .lineTo(new Vector2d(12, ALLEY_Y), constInterp180)
-                        .splineTo(new Pose2d(STONES_X[STONE_OPTIONS[stonePos][1]],ALLEY_Y+STONE_OFFSET,Math.toRadians(-180)), constInterp180)
+                        .splineTo(new Pose2d(12, 39, Math.toRadians(180)), constInterp180)
+                        .splineTo(new Pose2d(STONES_X[STONE_OPTIONS[stonePos][1]],39,Math.toRadians(180)), constInterp180)
                         .build()
-                , State.TO_QUARRY
-        );
-        stone2 = drive.getPoseEstimate().getY();
-        if(Math.abs(-stone2 - 32) > 3)
-            strafeAndGrab(drive,-stone2-32);
-        else
-            grab();
+                , State.TO_QUARRY);
+        strafeAndGrab(drive, Math.abs(drive.getPoseEstimate().getY())-32);
         drive.update();
         logger.put("Second pickup", String.format("%.3f", clock.seconds()));
 
         //deposit second stone
         followTrajectoryArmSync(
-                drive.trajectoryBuilder()
+                drive.trajectoryBuilderFaster()
                         .reverse()
                         .lineTo(new Vector2d(-10, ALLEY_Y), constInterp180)
-                        .lineTo(new Vector2d(foundationX+1, ALLEY_Y-4),constInterp180)
+                        .lineTo(new Vector2d(foundationX+1, ALLEY_Y), constInterp180)
                         .build()
                 , State.TO_FOUNDATION
         );
         deposit();
 //        delay(.25);
         foundationX = drive.getPoseEstimate().getX();
-        logString += "Second deposit " + clock.seconds() + "\n";
         logger.put("Second deposit", String.format("%.3f", clock.seconds()));
 
         // Go back and Third Pick-Up
         followTrajectoryArmSync(
                 drive.trajectoryBuilder()
-                        .lineTo(new Vector2d(12,ALLEY_Y), constInterp180)
-                        .splineTo(new Pose2d(STONES_X[STONE_OPTIONS[stonePos][2]],ALLEY_Y+STONE_OFFSET,Math.toRadians(-180)))
+                        .lineTo(new Vector2d(12,ALLEY_Y),constInterp180)
+                        .lineTo(new Vector2d(STONES_X[STONE_OPTIONS[stonePos][2]], ALLEY_Y), constInterp180)
                         .build()
                 , State.TO_QUARRY);
+        double stone3 = drive.getPoseEstimate().getY();
+        strafeAndGrab(drive,Math.abs(stone3-32));
         drive.update();
-        stone3 = drive.getPoseEstimate().getY();
-        if(Math.abs(-stone3 - 32) > 3)
-            strafeAndGrab(drive,-stone3-32);
-        else
-            grab();
         logger.put("Third pickup", String.format("%.3f", clock.seconds()));
-
 
         // Go to foundation 3
         followTrajectoryArmSync(
-                drive.trajectoryBuilder()
+                drive.trajectoryBuilderFaster()
                         .reverse()
                         .lineTo(new Vector2d(-10, ALLEY_Y), constInterp180)
-                        .lineTo(new Vector2d(foundationX-3, ALLEY_Y-8), constInterp180)
+                        .splineTo(new Pose2d(foundationX-3, ALLEY_Y+4, Math.toRadians(180)), constInterp180)
                         .build()
                 , State.TO_FOUNDATION);
         drive.update();
         deposit();
 //        delay(.25);
         foundationX = drive.getPoseEstimate().getX();
-        logString += "Third deposit " + clock.seconds() + "\n";
         logger.put("Third deposit", String.format("%.3f", clock.seconds()));
 
         // go to fourth stone pickup
         followTrajectoryArmSync(
                 drive.trajectoryBuilder()
                         .lineTo(new Vector2d(12,ALLEY_Y), constInterp180)
-                        .splineTo(new Pose2d(STONES_X[STONE_OPTIONS[stonePos][3]],ALLEY_Y+STONE_OFFSET,Math.toRadians(-180)))
+                        .lineTo(new Vector2d(STONES_X[STONE_OPTIONS[stonePos][3]],ALLEY_Y),constInterp180)
                         .build()
                 , State.TO_QUARRY);
         drive.update();
-        double stone4 = drive.getPoseEstimate().getY();
-        if(Math.abs(-stone4 - 32) > 3)
-            strafeAndGrab(drive,-stone4-32);
-        else
-            grab();
+        strafeAndGrab(drive, drive.getPoseEstimate().getY() - 31.5);
         logger.put("Fourth pickup", String.format("%.3f", clock.seconds()));
 
         // GO TO FOUNDATION 4
         followTrajectoryArmSync(
-                drive.trajectoryBuilder()
+                drive.trajectoryBuilderFaster()
                         .reverse()
-                        .lineTo(new Vector2d(-10, ALLEY_Y), constInterp180)
-                        .splineTo(new Pose2d(30, ALLEY_Y-10, Math.toRadians(-180)))
+                        .splineTo(new Pose2d(-10, ALLEY_Y, Math.toRadians(180)))
+                        .splineTo(new Pose2d(30, ALLEY_Y+10, Math.toRadians(180)))
                         .build()
                 , State.TO_FOUNDATION);
         drive.update();
+        foundationX = drive.getPoseEstimate().getX();
 
         //Slow Push Into Depot
         followTrajectoryArmSync(
-                drive.trajectoryBuilder()
+                drive.trajectoryBuilderFaster()
                         .reverse()
-                        .splineTo(new Pose2d(49, ALLEY_Y-10, Math.toRadians(-180)))
+                        .splineTo(new Pose2d(49, ALLEY_Y+10, Math.toRadians(180)))
                         .build()
                 , State.TO_FOUNDATION);
         drive.update();
 
         deposit();
 //        delay(.15);
-        logString += "Fourth deposit " + clock.seconds() + "\n";
         logger.put("Fourth deposit", String.format("%.3f", clock.seconds()));
 
         // Park
         followTrajectoryArmSync(
-                drive.trajectoryBuilder()
-                        .splineTo(new Pose2d(4, ALLEY_Y, Math.toRadians(-180)))
+                drive.trajectoryBuilderSlow()
+                        .splineTo(new Pose2d(4, ALLEY_Y, Math.toRadians(180)))
                         .build()
                 , State.TO_FINISH
         );
-        logString += "Final time " + clock.seconds() + "\n";
         logger.put("Park time", String.format("%.3f", clock.seconds()));
 
         TelemetryPacket packet = new TelemetryPacket();
@@ -419,23 +389,20 @@ public class AutoRedStackTesting extends LinearOpMode {
                 tfod.shutdown();
             }
         }
+
     }
+
 
     public void deposit() {
         if (CLAW_SIDE == clawSide.RIGHT) {
-            RsetRotate(R_ROTATE_DEPOSIT);
+            RsetRotate(R_ROTATE_BACK);
             RsetArm(R_ARM_DROP);
-//            delay(0.1);
-            RsetClaw(R_CLAW_FOUNDATION);
-//            delay(0.2);
-//            RsetArm(R_ARM_GRAB);
-        } else {
-            LsetRotate(L_ROTATE_DEPOSIT);
+            RsetClaw(R_CLAW_RELEASE);
+        }
+        else {
+            LsetRotate(L_ROTATE_BACK);
             LsetArm(L_ARM_DROP);
-//            delay(0.1);
-            LsetClaw(L_CLAW_FOUNDATION);
-//            delay(0.2);
-//            LsetArm(L_ARM_GRAB);
+            LsetClaw(L_CLAW_RELEASE);
         }
     }
 
@@ -483,38 +450,17 @@ public class AutoRedStackTesting extends LinearOpMode {
         }
     }
 
-    public void grab() {
-        if (CLAW_SIDE == clawSide.LEFT) {
-            LsetArm(L_ARM_OVER);
-            LsetClaw(L_CLAW_RELEASE);
-            delay(0.2);
-            LsetArm(L_ARM_GRAB);
-            LsetClaw(L_CLAW_GRAB);
-            delay(0.4);
-            LsetArm(L_ARM_STOW);
-        } else {
-            RsetArm(R_ARM_OVER);
-            RsetClaw(R_CLAW_RELEASE);
-            delay(0.2);
-            RsetArm(R_ARM_GRAB);
-            RsetClaw(R_CLAW_GRAB);
-            delay(0.4);
-            RsetArm(R_ARM_STOW);
-        }
-    }
-
     public void setFoundation(double pos) {
         foundation.setPosition(pos);
     }
 
+
     public void RsetArm(double p) {
         rarm.setPosition(p);
     }
-
     public void RsetClaw(double p) {
         rclaw.setPosition(p);
     }
-
     public void RsetRotate(double p) {
         rrotate.setPosition(p);
     }
@@ -522,11 +468,9 @@ public class AutoRedStackTesting extends LinearOpMode {
     public void LsetArm(double p) {
         larm.setPosition(p);
     }
-
     public void LsetClaw(double p) {
         lclaw.setPosition(p);
     }
-
     public void LsetRotate(double p) {
         lrotate.setPosition(p);
     }
@@ -538,7 +482,6 @@ public class AutoRedStackTesting extends LinearOpMode {
             flipIntakeUpdate();
         }
     }
-
     public void liftPower(double pow) {
         lift1.setPower(pow);
         lift2.setPower(pow);
@@ -546,9 +489,9 @@ public class AutoRedStackTesting extends LinearOpMode {
 
     public void flipIntakeUpdate() {
         lift1.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-        if (liftClock.seconds() < 0.5 && lift1.getCurrentPosition() > -8000) {
+        if (liftClock.seconds() < 0.5 && lift1.getCurrentPosition() > -8000)  {
             liftPower(0.5);
-        } else if (liftClock.seconds() < 1.0) {
+        } else if (liftClock.seconds() <1.0) {
             liftPower(0);
         } else if (liftClock.seconds() < 5.0 && lift1.getCurrentPosition() < -200) {
             liftPower(-0.5);
@@ -557,10 +500,11 @@ public class AutoRedStackTesting extends LinearOpMode {
         }
     }
 
+
     // TODO: make state an argument, add a default case
     public void followTrajectoryArmSync(Trajectory t, State s) {
         drive.followTrajectory(t);
-        while (!Thread.currentThread().isInterrupted() && drive.isBusy()) {
+        while(!Thread.currentThread().isInterrupted() && drive.isBusy()) {
             drive.update();
             flipIntakeUpdate();
             switch (s) {
@@ -586,31 +530,25 @@ public class AutoRedStackTesting extends LinearOpMode {
                     break;
                 case TO_QUARRY:
                     if (drive.getPoseEstimate().getX() < -15) {
-                        RsetClaw(R_CLAW_RELEASE);
-                        RsetArm(R_ARM_OVER);
-                        RsetRotate(R_ROTATE_SIDE);
+                        LsetClaw(L_CLAW_RELEASE);
+                        LsetArm(L_ARM_OVER);
+                        LsetRotate(L_ROTATE_SIDE);
                     }
-//                    if(drive.getPoseEstimate().getX() > 15) {
-//                        RsetClaw(R_CLAW_STOW);
-//                    }
                     break;
                 case TO_FINISH:
-                    RsetRotate(R_ROTATE_SIDE);
+                    LsetRotate(L_ROTATE_SIDE);
                     delay(0.3);
-                    RsetClaw(R_CLAW_STOW);
-                    RsetArm(R_ARM_STOW);
+                    LsetClaw(L_CLAW_STOW);
+                    LsetArm(L_ARM_STOW);
                     break;
                 case DEFAULT:
                     break;
             }
         }
-
-
     }
-
     private void initVuforia() {
         VuforiaLocalizer.Parameters parameters = new VuforiaLocalizer.Parameters();
-        parameters.cameraName = hardwareMap.get(WebcamName.class, "redCam");
+        parameters.cameraName = hardwareMap.get(WebcamName.class, "blueCam");
         parameters.vuforiaLicenseKey = VUFORIA_KEY;
         parameters.cameraDirection = VuforiaLocalizer.CameraDirection.BACK;
         vuforia = ClassFactory.getInstance().createVuforia(parameters);
@@ -692,9 +630,9 @@ public class AutoRedStackTesting extends LinearOpMode {
         int pos = 0;
         getSkystone();
         if (stoneHeading < -10)
-            pos = 1;
-        else if (stoneHeading > 10)
             pos = 3;
+        else if (stoneHeading > 10)
+            pos = 1;
         else
             pos = 2;
         displayStoneInfo(telemetry);
@@ -729,10 +667,10 @@ public class AutoRedStackTesting extends LinearOpMode {
         // telemetry.update();
         int min = Math.min(Math.min(avg1, avg2), avg3);
         if (min == avg1)
-            return 1;
+            return 3;
         if (min == avg2)
             return 2;
-        return 3;
+        return 1;
     }
 
     public int getPosition() {
@@ -803,4 +741,5 @@ public class AutoRedStackTesting extends LinearOpMode {
         telemetry.addData("stoneBottom", stoneBottom);
         telemetry.addData("stoneHeading", stoneHeading);
     }
+
 }

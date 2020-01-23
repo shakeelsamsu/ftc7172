@@ -31,13 +31,13 @@ import org.firstinspires.ftc.teamcode.drive.mecanum.SampleMecanumDriveBase;
 import org.firstinspires.ftc.teamcode.drive.mecanum.SampleMecanumDriveREVOptimized;
 
 import java.nio.ByteBuffer;
-import java.util.LinkedHashMap;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 @Config
 @Autonomous
-public class AutoRedStackTestingJan20 extends LinearOpMode {
+public class AutoRedLamar extends LinearOpMode {
     ElapsedTime timer = new ElapsedTime();
     public static double stone1 = 0;
     public static double stone2 = 0;
@@ -84,7 +84,6 @@ public class AutoRedStackTestingJan20 extends LinearOpMode {
 
     ConstantInterpolator constInterp = new ConstantInterpolator(0);
     ConstantInterpolator constInterp180 = new ConstantInterpolator(Math.toRadians(-180));
-    ConstantInterpolator constInterp220 = new ConstantInterpolator(Math.toRadians(-220));
     LinearInterpolator linInterp = new LinearInterpolator(0, Math.toRadians(-90));
 
     enum State {
@@ -102,7 +101,7 @@ public class AutoRedStackTestingJan20 extends LinearOpMode {
     private ElapsedTime clock = new ElapsedTime();
     // good: 0 1 5
 
-    public static final double[] STONES_X = {-31.5, -37.5, -45.5, -44, -52, -64};
+    public static final double[] STONES_X = {-29.5, -37.5, -45.5, -44, -52, -64};
     public static final double[] STONES_INTAKE_X = {-31.5, -31.5, -45.5, -44, -52, -64};
     public static final int[][] STONE_OPTIONS = {{5, 0, 1}, {5, 2, 0, 1}, {4, 1, 0, 2}, {3, 0, 1, 2}};
 
@@ -164,7 +163,7 @@ public class AutoRedStackTestingJan20 extends LinearOpMode {
 
     public String logString = "";
 
-    public LinkedHashMap<String, String> logger = new LinkedHashMap<String, String>();
+    public HashMap<String, String> logger = new HashMap<String, String>();
 
     public void runOpMode() {
         dashboard = FtcDashboard.getInstance();
@@ -246,7 +245,7 @@ public class AutoRedStackTestingJan20 extends LinearOpMode {
                 , State.DEFAULT
         );
         stone1 = drive.getPoseEstimate().getY();
-        strafeAndGrab(drive,-stone1-32);
+        strafeAndGrab(drive,-stone1-33);
         drive.update();
         logString += "First pickup " + clock.seconds() + " ";
         logger.put("First pickup", String.format("%.3f", clock.seconds()));
@@ -255,7 +254,7 @@ public class AutoRedStackTestingJan20 extends LinearOpMode {
         followTrajectoryArmSync(
                 drive.trajectoryBuilder()
                         .lineTo(new Vector2d(10, -38))
-                        .lineTo(new Vector2d(43, -40), linInterp)
+                        .lineTo(new Vector2d(47, -40), linInterp)
                         .build()
                 , State.TO_FOUNDATION);
         drive.update();
@@ -270,13 +269,13 @@ public class AutoRedStackTestingJan20 extends LinearOpMode {
         setFoundation(FOUNDATION_GRAB);
         followTrajectoryArmSync(
                 drive.trajectoryBuilderFaster()
-                        .splineTo(new Pose2d(24, -43, Math.toRadians(-180)))
+                        .splineTo(new Pose2d(24, -46, Math.toRadians(-180)))
                         .build()
                 , State.DEFAULT
         );
         followTrajectoryArmSync(
                 drive.trajectoryBuilder()
-                .splineTo(new Pose2d(24, -43, Math.toRadians((-180))))
+                .splineTo(new Pose2d(24, -46, Math.toRadians((-180))))
                 .build()
                 , State.DEFAULT
         );
@@ -307,7 +306,7 @@ public class AutoRedStackTestingJan20 extends LinearOpMode {
                 , State.TO_QUARRY
         );
         stone2 = drive.getPoseEstimate().getY();
-        strafeAndGrab(drive, -stone2 - 31);
+        strafeAndGrab(drive, -stone2 - 32.5);
         drive.update();
         logger.put("Second pickup", String.format("%.3f", clock.seconds()));
 
@@ -354,17 +353,15 @@ public class AutoRedStackTestingJan20 extends LinearOpMode {
         logString += "Third deposit " + clock.seconds() + "\n";
         logger.put("Third deposit", String.format("%.3f", clock.seconds()));
 
-        intaking = true;
-
         // go to fourth stone pickup
         followTrajectoryArmSync(
                 drive.trajectoryBuilder()
                         .lineTo(new Vector2d(12,ALLEY_Y), constInterp180)
-                        .lineTo(new Vector2d(STONES_INTAKE_X[STONE_OPTIONS[stonePos][3]],-31), constInterp220)
+                        .lineTo(new Vector2d(STONES_X[STONE_OPTIONS[stonePos][3]],ALLEY_Y),constInterp180)
                         .build()
                 , State.TO_QUARRY);
         drive.update();
-//        strafeAndGrab(drive, -drive.getPoseEstimate().getY() - 31);
+        strafeAndGrab(drive, -drive.getPoseEstimate().getY() - 31.5);
         logger.put("Fourth pickup", String.format("%.3f", clock.seconds()));
 
         // GO TO FOUNDATION 4
@@ -563,12 +560,6 @@ public class AutoRedStackTestingJan20 extends LinearOpMode {
             flipIntakeUpdate();
             switch (s) {
                 case TO_FOUNDATION:
-                    if(intaking) {
-                        if(drive.getPoseEstimate().getX() > 0) {
-                            rin.setPower(0);
-                            lin.setPower(0);
-                        }
-                    }
                     if (drive.getPoseEstimate().getX() > -40) {
                         if (CLAW_SIDE == clawSide.RIGHT) {
                             RsetRotate(R_ROTATE_BACK);
@@ -597,12 +588,6 @@ public class AutoRedStackTestingJan20 extends LinearOpMode {
 //                    if(drive.getPoseEstimate().getX() > 15) {
 //                        RsetClaw(R_CLAW_STOW);
 //                    }
-                    if(intaking) {
-                        if(drive.getPoseEstimate().getX() < 10) {
-                            lin.setPower(-1);
-                            rin.setPower(1);
-                        }
-                    }
                     break;
                 case TO_FINISH:
                     RsetRotate(R_ROTATE_SIDE);
