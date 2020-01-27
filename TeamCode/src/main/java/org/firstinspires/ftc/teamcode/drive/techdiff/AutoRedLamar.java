@@ -90,6 +90,7 @@ public class AutoRedLamar extends LinearOpMode {
         TO_FOUNDATION,
         TO_QUARRY,
         TO_FINISH,
+        GRAB_FOUNDATION,
         DEFAULT
     }
 
@@ -262,9 +263,9 @@ public class AutoRedLamar extends LinearOpMode {
         // Move Foundation and deposit
         followTrajectoryArmSync(
                 drive.trajectoryBuilderSlow()
-                        .back(Math.abs(drive.getPoseEstimate().getY() + 30))
+                        .back(Math.abs(drive.getPoseEstimate().getY() + 28))
                         .build()
-                , State.DEFAULT
+                , State.GRAB_FOUNDATION
         );
         setFoundation(FOUNDATION_GRAB);
         followTrajectoryArmSync(
@@ -280,7 +281,7 @@ public class AutoRedLamar extends LinearOpMode {
                 , State.DEFAULT
         );
         deposit();
-        delay(0.2);
+        delay(0.4);
 
         LsetClaw(L_CLAW_RELEASE);
         setFoundation(FOUNDATION_RELEASE);
@@ -552,7 +553,8 @@ public class AutoRedLamar extends LinearOpMode {
         }
     }
 
-    // TODO: make state an argument, add a default case
+    // Maybe we should test using a TrajectoryBuilder from a pre-built trajectory
+    // (look at the last constructor of a TrajectoryBuilder)
     public void followTrajectoryArmSync(Trajectory t, State s) {
         drive.followTrajectory(t);
         while (!Thread.currentThread().isInterrupted() && drive.isBusy()) {
@@ -594,6 +596,11 @@ public class AutoRedLamar extends LinearOpMode {
                     delay(0.3);
                     RsetClaw(R_CLAW_STOW);
                     RsetArm(R_ARM_STOW);
+                    break;
+                case GRAB_FOUNDATION:
+                    if(drive.getPoseEstimate().getY() > -30) {
+                        setFoundation(FOUNDATION_GRAB);
+                    }
                     break;
                 case DEFAULT:
                     break;

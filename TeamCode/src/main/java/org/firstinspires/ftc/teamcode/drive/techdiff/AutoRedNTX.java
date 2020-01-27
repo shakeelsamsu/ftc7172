@@ -11,6 +11,7 @@ import com.acmerobotics.roadrunner.trajectory.Trajectory;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.Range;
@@ -26,7 +27,6 @@ import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.VuforiaLocalizer;
 import org.firstinspires.ftc.robotcore.external.tfod.Recognition;
 import org.firstinspires.ftc.robotcore.external.tfod.TFObjectDetector;
-import org.firstinspires.ftc.teamcode.drive.techdiff.GlideConstants;
 import org.firstinspires.ftc.teamcode.drive.mecanum.SampleMecanumDriveBase;
 import org.firstinspires.ftc.teamcode.drive.mecanum.SampleMecanumDriveREVOptimized;
 
@@ -37,8 +37,12 @@ import java.util.Map;
 
 @Config
 @Autonomous
-public class AutoBlueLamar extends LinearOpMode {
+public class AutoRedNTX extends LinearOpMode {
     ElapsedTime timer = new ElapsedTime();
+    public static double stone1 = 0;
+    public static double stone2 = 0;
+    public static double stone3 = 0;
+
     private static double R_ARM_STOW = GlideConstants.R_ARM_STOW;
     private static double R_ARM_GRAB = GlideConstants.R_ARM_GRAB;
     private static double R_ARM_OVER = GlideConstants.R_ARM_OVER;
@@ -47,6 +51,7 @@ public class AutoBlueLamar extends LinearOpMode {
     public static double R_CLAW_STOW = GlideConstants.R_CLAW_STOW;
     public static double R_CLAW_GRAB = GlideConstants.R_CLAW_GRAB;
     public static double R_CLAW_RELEASE = GlideConstants.R_CLAW_RELEASE;
+    private static double R_CLAW_FOUNDATION = GlideConstants.R_CLAW_FOUNDATION;
 
     private static double R_ROTATE_SIDE = GlideConstants.R_ROTATE_SIDE;
     private static double R_ROTATE_DEPOSIT = GlideConstants.R_ROTATE_DEPOSIT;
@@ -65,14 +70,21 @@ public class AutoBlueLamar extends LinearOpMode {
     public static double L_CLAW_STOW = GlideConstants.L_CLAW_STOW;
     public static double L_CLAW_GRAB = GlideConstants.L_CLAW_GRAB;
     public static double L_CLAW_RELEASE = GlideConstants.L_CLAW_RELEASE;
+    private static double L_CLAW_FOUNDATION = GlideConstants.L_CLAW_FOUNDATION;
 
     public static double L_ROTATE_SIDE = GlideConstants.L_ROTATE_SIDE;
     public static double L_ROTATE_DEPOSIT = GlideConstants.L_ROTATE_DEPOSIT;
     public static double L_ROTATE_BACK = GlideConstants.L_ROTATE_BACK;
 
+    private int FOUNDATION_OFFSET = -3;
+    private int SECOND_STONE_OFFSET = 0;
+    private int THIRD_STONE_OFFSET = -3;
+
+    private static double ALLEY_Y = -39;
+
     ConstantInterpolator constInterp = new ConstantInterpolator(0);
-    ConstantInterpolator constInterp180 = new ConstantInterpolator(Math.toRadians(180));
-    LinearInterpolator linInterp = new LinearInterpolator(0,Math.toRadians(90));
+    ConstantInterpolator constInterp180 = new ConstantInterpolator(Math.toRadians(-180));
+    LinearInterpolator linInterp = new LinearInterpolator(0, Math.toRadians(-90));
 
     enum State {
         TO_FOUNDATION,
@@ -81,12 +93,17 @@ public class AutoBlueLamar extends LinearOpMode {
         GRAB_FOUNDATION,
         DEFAULT
     }
+
     enum Claw {
         LEFT,
         RIGHT
     }
+    private FtcDashboard dashboard;
+    private ElapsedTime clock = new ElapsedTime();
+    // good: 0 1 5
 
-    public static final double[] STONES_X = {-31.5, -38.5, -47.5, -41, -52, -60};
+    public static final double[] STONES_X = {-29.5, -37.5, -45.5, -44, -52, -64};
+    public static final double[] STONES_INTAKE_X = {-31.5, -31.5, -45.5, -44, -52, -64};
     public static final int[][] STONE_OPTIONS = {{5, 0, 1}, {5, 2, 0, 1}, {4, 1, 0, 2}, {3, 0, 1, 2}};
 
     private Servo rarm;
@@ -98,11 +115,12 @@ public class AutoBlueLamar extends LinearOpMode {
     private Servo foundation;
 
     private DcMotor lift1, lift2;
+    private DcMotor rin, lin;
 
     private SampleMecanumDriveBase drive;
     private State state;
     private Claw clawSide;
-    private Claw CLAW_SIDE = clawSide.RIGHT;
+    private Claw CLAW_SIDE = clawSide.LEFT;
     private ElapsedTime liftClock = new ElapsedTime();
 
     private static final String TFOD_MODEL_ASSET = "Skystone.tflite";
@@ -116,6 +134,12 @@ public class AutoBlueLamar extends LinearOpMode {
     private int stoneTop = 0;
     private double stoneHeading = 0;
 
+    private boolean foundationReached = false;
+    private double foundationX = 0;
+    private final double DEPOSIT_OFFSET = -5;
+
+    private boolean intaking = false;
+
     private VuforiaLocalizer vuforia;
     private TFObjectDetector tfod;
 
@@ -123,9 +147,7 @@ public class AutoBlueLamar extends LinearOpMode {
 
     enum Mode {TF, AVG, MANUAL}
 
-    private FtcDashboard dashboard;
-    public HashMap<String, String> logger = new HashMap<String, String>();
-
+    ;
     boolean lastDUp = false;
     boolean lastDDown = false;
     boolean lastDRight = false;
@@ -140,19 +162,16 @@ public class AutoBlueLamar extends LinearOpMode {
     int row = 300;
     int manualPosition = 1;
 
-    ElapsedTime clock;
+    public String logString = "";
 
-    double foundationX = 0;
-    boolean foundationReached = false;
-    private final double DEPOSIT_OFFSET = -5;
+    public HashMap<String, String> logger = new HashMap<String, String>();
 
-    final int ALLEY_Y = 39;
+    public double FOUNDATION_DELAY = 1;
 
     public void runOpMode() {
         dashboard = FtcDashboard.getInstance();
         dashboard.setTelemetryTransmissionInterval(25);
         timer = new ElapsedTime();
-        clock = new ElapsedTime();
         drive = new SampleMecanumDriveREVOptimized(hardwareMap);
         rarm = hardwareMap.get(Servo.class, "rarm");
         rrotate = hardwareMap.get(Servo.class, "rrotate");
@@ -166,8 +185,13 @@ public class AutoBlueLamar extends LinearOpMode {
         lift1.setDirection(DcMotor.Direction.REVERSE);
         lift1.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         lift2.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        lin = hardwareMap.get(DcMotorEx.class, "lin");
+        rin = hardwareMap.get(DcMotorEx.class, "rin");
+        lin.setDirection(DcMotor.Direction.FORWARD);
+        rin.setDirection(DcMotor.Direction.FORWARD);
         int stonePos = 5;
 
+        // Vision
         initVuforia();
         telemetry.update();
         if (ClassFactory.getInstance().canCreateTFObjectDetector()) {
@@ -197,11 +221,11 @@ public class AutoBlueLamar extends LinearOpMode {
             telemetry.addData("position", stonePos = getPosition());
             telemetry.update();
         }
-        liftClock.reset();
         clock.reset();
+        liftClock.reset();
         lift1.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        delay(0.25);
-        drive.setPoseEstimate(new Pose2d(-38, 63, 0));
+        delay(.25);
+        drive.setPoseEstimate(new Pose2d(-38, -63, 0));
         LsetRotate(L_ROTATE_SIDE);
         LsetClaw(L_CLAW_STOW);
         LsetArm(L_ARM_STOW);
@@ -212,88 +236,97 @@ public class AutoBlueLamar extends LinearOpMode {
 
         // First Pick-Up
         followTrajectoryArmSync(
-                drive.trajectoryBuilder()
-                        .strafeTo(new Vector2d(STONES_X[STONE_OPTIONS[stonePos][0]], 38))
+                drive.trajectoryBuilderFast()
+                        .strafeTo(new Vector2d(STONES_X[STONE_OPTIONS[stonePos][0]], -38))
                         .build()
                 , State.DEFAULT
         );
         followTrajectoryArmSync(
-                drive.trajectoryBuilder()
-                        .strafeTo(new Vector2d(STONES_X[STONE_OPTIONS[stonePos][0]], 38))
+                drive.trajectoryBuilderFast()
+                        .strafeTo(new Vector2d(STONES_X[STONE_OPTIONS[stonePos][0]], -38))
                         .build()
                 , State.DEFAULT
         );
-        double stone1 = drive.getPoseEstimate().getY();
-        strafeAndGrab(drive,stone1-33);
+        stone1 = drive.getPoseEstimate().getY();
+        strafeAndGrab(drive,-stone1-33);
         drive.update();
+        logString += "First pickup " + clock.seconds() + " ";
         logger.put("First pickup", String.format("%.3f", clock.seconds()));
-        drive.update();
 
         // Go to Foundation
         followTrajectoryArmSync(
                 drive.trajectoryBuilder()
-                        .lineTo(new Vector2d(10, 38))
-                        .lineTo(new Vector2d(48, 42), linInterp)
+                        .lineTo(new Vector2d(10, -38))
+                        .lineTo(new Vector2d(47, -40), linInterp)
                         .build()
                 , State.TO_FOUNDATION);
         drive.update();
 
         // Move Foundation and deposit
-        followTrajectoryArmSync(
-                drive.trajectoryBuilderSlow()
-                        .back(drive.getPoseEstimate().getY()-28)
-                        .build()
-                , State.GRAB_FOUNDATION
-        );
-        setFoundation(FOUNDATION_GRAB);
+//        followTrajectoryArmSync(
+//                drive.trajectoryBuilderSlow()
+//                        .back(Math.abs(drive.getPoseEstimate().getY() + 28))
+//                        .build()
+//                , State.GRAB_FOUNDATION
+//        );
+//        setFoundation(FOUNDATION_GRAB);
+        double now = clock.seconds();
+
+        while(opModeIsActive() && clock.seconds() < now + FOUNDATION_DELAY) {
+            drive.setDrivePower(new Pose2d(-0.2, 0, 0));
+            if(drive.getPoseEstimate().getY() > -30) {
+                setFoundation(FOUNDATION_GRAB);
+            }
+            drive.update();
+        }
+
+
         followTrajectoryArmSync(
                 drive.trajectoryBuilderFaster()
-                        .splineTo(new Pose2d(24,48,Math.toRadians(180)))
+                        .splineTo(new Pose2d(24, -46, Math.toRadians(-180)))
                         .build()
                 , State.DEFAULT
         );
         followTrajectoryArmSync(
                 drive.trajectoryBuilder()
-                        .splineTo(new Pose2d(24,48,Math.toRadians(180)))
-                        .build()
+                .splineTo(new Pose2d(24, -46, Math.toRadians((-180))))
+                .build()
                 , State.DEFAULT
         );
-
-
         deposit();
-        delay(0.2);
+        delay(0.4);
 
+        LsetClaw(L_CLAW_RELEASE);
         setFoundation(FOUNDATION_RELEASE);
-        RsetClaw(R_CLAW_RELEASE);
         foundationX = drive.getPoseEstimate().getX();
         foundationReached = true;
         logger.put("Foundation X ", String.format("%.3f", foundationX));
         logger.put("First deposit", String.format("%.3f", clock.seconds()));
 
-
-
         // Switch claw/arm sides
-        CLAW_SIDE = clawSide.LEFT;
-        RsetRotate(R_ROTATE_SIDE);
-        RsetArm(R_ARM_STOW);
-        RsetClaw(R_CLAW_STOW);
+        CLAW_SIDE = clawSide.RIGHT;
+        LsetRotate(L_ROTATE_SIDE);
         LsetArm(L_ARM_STOW);
         LsetClaw(L_CLAW_STOW);
+        RsetArm(R_ARM_STOW);
+        RsetClaw(R_CLAW_STOW);
 
         // Go back and Second Pick-Up
         followTrajectoryArmSync(
                 drive.trajectoryBuilder()
-                        .splineTo(new Pose2d(12, 39, Math.toRadians(180)), constInterp180)
-                        .splineTo(new Pose2d(STONES_X[STONE_OPTIONS[stonePos][1]],39,Math.toRadians(180)), constInterp180)
+                        .splineTo(new Pose2d(12, ALLEY_Y, Math.toRadians(-180)), constInterp180)
+                        .splineTo(new Pose2d(STONES_X[STONE_OPTIONS[stonePos][1]],ALLEY_Y,Math.toRadians(-180)), constInterp180)
                         .build()
-                , State.TO_QUARRY);
-        strafeAndGrab(drive, Math.abs(drive.getPoseEstimate().getY())-32);
+                , State.TO_QUARRY
+        );
+        stone2 = drive.getPoseEstimate().getY();
+        strafeAndGrab(drive, -stone2 - 32.5);
         drive.update();
         logger.put("Second pickup", String.format("%.3f", clock.seconds()));
 
         //deposit second stone
         followTrajectoryArmSync(
-                drive.trajectoryBuilderFaster()
+                drive.trajectoryBuilder()
                         .reverse()
                         .lineTo(new Vector2d(-10, ALLEY_Y), constInterp180)
                         .lineTo(new Vector2d(foundationX+1, ALLEY_Y), constInterp180)
@@ -303,32 +336,35 @@ public class AutoBlueLamar extends LinearOpMode {
         deposit();
 //        delay(.25);
         foundationX = drive.getPoseEstimate().getX();
+        logString += "Second deposit " + clock.seconds() + "\n";
         logger.put("Second deposit", String.format("%.3f", clock.seconds()));
 
         // Go back and Third Pick-Up
         followTrajectoryArmSync(
                 drive.trajectoryBuilder()
-                        .lineTo(new Vector2d(12,ALLEY_Y),constInterp180)
-                        .lineTo(new Vector2d(STONES_X[STONE_OPTIONS[stonePos][2]], ALLEY_Y), constInterp180)
+                        .lineTo(new Vector2d(12,ALLEY_Y), constInterp180)
+                        .lineTo(new Vector2d(STONES_X[STONE_OPTIONS[stonePos][2]],ALLEY_Y),constInterp180)
                         .build()
                 , State.TO_QUARRY);
-        double stone3 = drive.getPoseEstimate().getY();
-        strafeAndGrab(drive,Math.abs(stone3-32));
         drive.update();
+        stone3 = drive.getPoseEstimate().getY();
+        strafeAndGrab(drive, -stone3 - 32);
         logger.put("Third pickup", String.format("%.3f", clock.seconds()));
+
 
         // Go to foundation 3
         followTrajectoryArmSync(
-                drive.trajectoryBuilderFaster()
+                drive.trajectoryBuilder()
                         .reverse()
                         .lineTo(new Vector2d(-10, ALLEY_Y), constInterp180)
-                        .splineTo(new Pose2d(foundationX-3, ALLEY_Y, Math.toRadians(180)), constInterp180)
+                        .lineTo(new Vector2d(foundationX-3, ALLEY_Y), constInterp180)
                         .build()
                 , State.TO_FOUNDATION);
         drive.update();
         deposit();
 //        delay(.25);
         foundationX = drive.getPoseEstimate().getX();
+        logString += "Third deposit " + clock.seconds() + "\n";
         logger.put("Third deposit", String.format("%.3f", clock.seconds()));
 
         // go to fourth stone pickup
@@ -339,40 +375,41 @@ public class AutoBlueLamar extends LinearOpMode {
                         .build()
                 , State.TO_QUARRY);
         drive.update();
-        strafeAndGrab(drive, drive.getPoseEstimate().getY() - 31.5);
+        strafeAndGrab(drive, -drive.getPoseEstimate().getY() - 31.5);
         logger.put("Fourth pickup", String.format("%.3f", clock.seconds()));
 
         // GO TO FOUNDATION 4
         followTrajectoryArmSync(
-                drive.trajectoryBuilderFaster()
+                drive.trajectoryBuilder()
                         .reverse()
-                        .splineTo(new Pose2d(-10, ALLEY_Y, Math.toRadians(180)))
-                        .splineTo(new Pose2d(30, ALLEY_Y+10, Math.toRadians(180)))
+                        .splineTo(new Pose2d(-10, ALLEY_Y, Math.toRadians(-180)))
+                        .splineTo(new Pose2d(30, ALLEY_Y-10, Math.toRadians(-180)))
                         .build()
                 , State.TO_FOUNDATION);
         drive.update();
-        foundationX = drive.getPoseEstimate().getX();
 
-        //Push Into Depot
+        //Slow Push Into Depot
         followTrajectoryArmSync(
-                drive.trajectoryBuilderFaster()
+                drive.trajectoryBuilder()
                         .reverse()
-                        .splineTo(new Pose2d(49, ALLEY_Y+10, Math.toRadians(180)))
+                        .splineTo(new Pose2d(49, ALLEY_Y-10, Math.toRadians(-180)))
                         .build()
                 , State.TO_FOUNDATION);
         drive.update();
 
         deposit();
 //        delay(.15);
+        logString += "Fourth deposit " + clock.seconds() + "\n";
         logger.put("Fourth deposit", String.format("%.3f", clock.seconds()));
 
         // Park
         followTrajectoryArmSync(
-                drive.trajectoryBuilderSlow()
-                        .splineTo(new Pose2d(4, ALLEY_Y, Math.toRadians(180)))
+                drive.trajectoryBuilder()
+                        .splineTo(new Pose2d(4, ALLEY_Y, Math.toRadians(-180)))
                         .build()
                 , State.TO_FINISH
         );
+        logString += "Final time " + clock.seconds() + "\n";
         logger.put("Park time", String.format("%.3f", clock.seconds()));
 
         TelemetryPacket packet = new TelemetryPacket();
@@ -391,20 +428,23 @@ public class AutoBlueLamar extends LinearOpMode {
                 tfod.shutdown();
             }
         }
-
     }
-
 
     public void deposit() {
         if (CLAW_SIDE == clawSide.RIGHT) {
-            RsetRotate(R_ROTATE_BACK);
+            RsetRotate(R_ROTATE_DEPOSIT);
             RsetArm(R_ARM_DROP);
-            RsetClaw(R_CLAW_RELEASE);
-        }
-        else {
-            LsetRotate(L_ROTATE_BACK);
+//            delay(0.1);
+            RsetClaw(R_CLAW_FOUNDATION);
+//            delay(0.2);
+//            RsetArm(R_ARM_GRAB);
+        } else {
+            LsetRotate(L_ROTATE_DEPOSIT);
             LsetArm(L_ARM_DROP);
-            LsetClaw(L_CLAW_RELEASE);
+//            delay(0.1);
+            LsetClaw(L_CLAW_FOUNDATION);
+//            delay(0.2);
+//            LsetArm(L_ARM_GRAB);
         }
     }
 
@@ -452,17 +492,38 @@ public class AutoBlueLamar extends LinearOpMode {
         }
     }
 
+    public void grab() {
+        if (CLAW_SIDE == clawSide.LEFT) {
+            LsetArm(L_ARM_OVER);
+            LsetClaw(L_CLAW_RELEASE);
+            delay(0.1);
+            LsetArm(L_ARM_GRAB);
+            LsetClaw(L_CLAW_GRAB);
+            delay(0.3);
+            LsetArm(L_ARM_STOW);
+        } else {
+            RsetArm(R_ARM_OVER);
+            RsetClaw(R_CLAW_RELEASE);
+            delay(0.1);
+            RsetArm(R_ARM_GRAB);
+            RsetClaw(R_CLAW_GRAB);
+            delay(0.3);
+            RsetArm(R_ARM_STOW);
+        }
+    }
+
     public void setFoundation(double pos) {
         foundation.setPosition(pos);
     }
 
-
     public void RsetArm(double p) {
         rarm.setPosition(p);
     }
+
     public void RsetClaw(double p) {
         rclaw.setPosition(p);
     }
+
     public void RsetRotate(double p) {
         rrotate.setPosition(p);
     }
@@ -470,9 +531,11 @@ public class AutoBlueLamar extends LinearOpMode {
     public void LsetArm(double p) {
         larm.setPosition(p);
     }
+
     public void LsetClaw(double p) {
         lclaw.setPosition(p);
     }
+
     public void LsetRotate(double p) {
         lrotate.setPosition(p);
     }
@@ -484,6 +547,7 @@ public class AutoBlueLamar extends LinearOpMode {
             flipIntakeUpdate();
         }
     }
+
     public void liftPower(double pow) {
         lift1.setPower(pow);
         lift2.setPower(pow);
@@ -491,9 +555,9 @@ public class AutoBlueLamar extends LinearOpMode {
 
     public void flipIntakeUpdate() {
         lift1.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-        if (liftClock.seconds() < 0.5 && lift1.getCurrentPosition() > -8000)  {
+        if (liftClock.seconds() < 0.5 && lift1.getCurrentPosition() > -8000) {
             liftPower(0.5);
-        } else if (liftClock.seconds() <1.0) {
+        } else if (liftClock.seconds() < 1.0) {
             liftPower(0);
         } else if (liftClock.seconds() < 5.0 && lift1.getCurrentPosition() < -200) {
             liftPower(-0.5);
@@ -502,11 +566,11 @@ public class AutoBlueLamar extends LinearOpMode {
         }
     }
 
-
-    // TODO: make state an argument, add a default case
+    // Maybe we should test using a TrajectoryBuilder from a pre-built trajectory
+    // (look at the last constructor of a TrajectoryBuilder)
     public void followTrajectoryArmSync(Trajectory t, State s) {
         drive.followTrajectory(t);
-        while(!Thread.currentThread().isInterrupted() && drive.isBusy()) {
+        while (!Thread.currentThread().isInterrupted() && drive.isBusy()) {
             drive.update();
             flipIntakeUpdate();
             switch (s) {
@@ -532,30 +596,36 @@ public class AutoBlueLamar extends LinearOpMode {
                     break;
                 case TO_QUARRY:
                     if (drive.getPoseEstimate().getX() < -15) {
-                        LsetClaw(L_CLAW_RELEASE);
-                        LsetArm(L_ARM_OVER);
-                        LsetRotate(L_ROTATE_SIDE);
+                        RsetClaw(R_CLAW_RELEASE);
+                        RsetArm(R_ARM_OVER);
+                        RsetRotate(R_ROTATE_SIDE);
                     }
+//                    if(drive.getPoseEstimate().getX() > 15) {
+//                        RsetClaw(R_CLAW_STOW);
+//                    }
                     break;
                 case TO_FINISH:
-                    LsetRotate(L_ROTATE_SIDE);
+                    RsetRotate(R_ROTATE_SIDE);
                     delay(0.3);
-                    LsetClaw(L_CLAW_STOW);
-                    LsetArm(L_ARM_STOW);
-                    break;
-                case DEFAULT:
+                    RsetClaw(R_CLAW_STOW);
+                    RsetArm(R_ARM_STOW);
                     break;
                 case GRAB_FOUNDATION:
-                    if(drive.getPoseEstimate().getY() < 30) {
+                    if(drive.getPoseEstimate().getY() > -30) {
                         setFoundation(FOUNDATION_GRAB);
                     }
                     break;
+                case DEFAULT:
+                    break;
             }
         }
+
+
     }
+
     private void initVuforia() {
         VuforiaLocalizer.Parameters parameters = new VuforiaLocalizer.Parameters();
-        parameters.cameraName = hardwareMap.get(WebcamName.class, "blueCam");
+        parameters.cameraName = hardwareMap.get(WebcamName.class, "redCam");
         parameters.vuforiaLicenseKey = VUFORIA_KEY;
         parameters.cameraDirection = VuforiaLocalizer.CameraDirection.BACK;
         vuforia = ClassFactory.getInstance().createVuforia(parameters);
@@ -637,9 +707,9 @@ public class AutoBlueLamar extends LinearOpMode {
         int pos = 0;
         getSkystone();
         if (stoneHeading < -10)
-            pos = 3;
-        else if (stoneHeading > 10)
             pos = 1;
+        else if (stoneHeading > 10)
+            pos = 3;
         else
             pos = 2;
         displayStoneInfo(telemetry);
@@ -674,10 +744,10 @@ public class AutoBlueLamar extends LinearOpMode {
         // telemetry.update();
         int min = Math.min(Math.min(avg1, avg2), avg3);
         if (min == avg1)
-            return 3;
+            return 1;
         if (min == avg2)
             return 2;
-        return 1;
+        return 3;
     }
 
     public int getPosition() {
@@ -748,5 +818,4 @@ public class AutoBlueLamar extends LinearOpMode {
         telemetry.addData("stoneBottom", stoneBottom);
         telemetry.addData("stoneHeading", stoneHeading);
     }
-
 }

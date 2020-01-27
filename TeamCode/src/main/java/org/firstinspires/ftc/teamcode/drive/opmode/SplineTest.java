@@ -12,7 +12,6 @@ import org.firstinspires.ftc.teamcode.drive.mecanum.SampleMecanumDriveREVOptimiz
 /*
  * This is an example of a more complex path to really test the tuning.
  */
-@Disabled
 @Config
 @Autonomous(group = "drive")
 public class SplineTest extends LinearOpMode {

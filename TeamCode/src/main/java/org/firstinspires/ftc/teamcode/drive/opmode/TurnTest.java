@@ -12,7 +12,6 @@ import org.firstinspires.ftc.teamcode.drive.mecanum.SampleMecanumDriveREVOptimiz
 /*
  * This is a simple routine to test turning capabilities.
  */
-@Disabled
 @Config
 @TeleOp(group = "drive")
 public class TurnTest extends LinearOpMode {

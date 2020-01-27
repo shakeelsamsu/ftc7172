@@ -69,9 +69,15 @@ public class DriveConstants {
      * acceleration values are required, and the jerk values are optional (setting a jerk of 0.0
      * forces acceleration-limited profiling).
      */
+//    public static DriveConstraints BASE_CONSTRAINTS = new DriveConstraints(
+////            50.0, 45.0, 0.0,
+//            60.0, 75.0, 0.0,
+//            Math.toRadians(220), Math.toRadians(320),0.0
+//    );
+
     public static DriveConstraints BASE_CONSTRAINTS = new DriveConstraints(
 //            50.0, 45.0, 0.0,
-            60.0, 75.0, 0.0,
+            60.0, 60.0, 0.0,
             Math.toRadians(220), Math.toRadians(320),0.0
     );
 
@@ -80,19 +86,37 @@ public class DriveConstants {
             Math.toRadians(220), Math.toRadians(320),0.0
     );
 
+//    public static DriveConstraints FAST_CONSTRAINTS = new DriveConstraints(
+//            50.0, 60.0, 0.0,
+//            Math.toRadians(220), Math.toRadians(320),0.0
+//    );
+
     public static DriveConstraints FAST_CONSTRAINTS = new DriveConstraints(
             50.0, 60.0, 0.0,
             Math.toRadians(220), Math.toRadians(320),0.0
     );
 
+//    public static DriveConstraints FASTER_CONSTRAINTS = new DriveConstraints(
+//            80.0, 80.0, 0.0,
+//            Math.toRadians(220), Math.toRadians(320),0.0
+//    );
+
     public static DriveConstraints FASTER_CONSTRAINTS = new DriveConstraints(
-            80.0, 80.0, 0.0,
+            80.0, 60.0, 0.0,
             Math.toRadians(220), Math.toRadians(320),0.0
     );
 
+//    public static DriveConstraints SLOW_CONSTRAINTS = new DriveConstraints(
+//        30,25,0,Math.toRadians(220),Math.toRadians(320), 0
+//    );
+
     public static DriveConstraints SLOW_CONSTRAINTS = new DriveConstraints(
-        30,25,0,Math.toRadians(220),Math.toRadians(320), 0
+            30,20,0,Math.toRadians(220),Math.toRadians(320), 0
     );
+
+//    public static DriveConstraints MED_CONSTRAINTS = new DriveConstraints(
+//            40,40,0,Math.toRadians(220),Math.toRadians(320), 0
+//    );
 
     public static DriveConstraints MED_CONSTRAINTS = new DriveConstraints(
             40,40,0,Math.toRadians(220),Math.toRadians(320), 0
