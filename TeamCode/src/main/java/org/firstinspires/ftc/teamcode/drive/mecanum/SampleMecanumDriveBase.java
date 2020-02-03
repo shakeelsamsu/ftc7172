@@ -6,6 +6,7 @@ import static org.firstinspires.ftc.teamcode.drive.DriveConstants.FINISH_CONSTRA
 import static org.firstinspires.ftc.teamcode.drive.DriveConstants.MED_CONSTRAINTS;
 import static org.firstinspires.ftc.teamcode.drive.DriveConstants.SLOW_CONSTRAINTS;
 import static org.firstinspires.ftc.teamcode.drive.DriveConstants.FAST_CONSTRAINTS;
+import static org.firstinspires.ftc.teamcode.drive.DriveConstants.FOUNDATION_CONSTRAINTS;
 import static org.firstinspires.ftc.teamcode.drive.DriveConstants.TRACK_WIDTH;
 import static org.firstinspires.ftc.teamcode.drive.DriveConstants.kA;
 import static org.firstinspires.ftc.teamcode.drive.DriveConstants.kStatic;
@@ -45,7 +46,7 @@ public abstract class SampleMecanumDriveBase extends MecanumDrive {
     // 7172
     public static PIDCoefficients AXIAL_PID = new PIDCoefficients(2.2, 0, 0.22);
     public static PIDCoefficients LATERAL_PID = new PIDCoefficients(1.5, 0, 0.1);
-    public static PIDCoefficients HEADING_PID = new PIDCoefficients(3, 0, 0); // switched I to D
+    public static PIDCoefficients HEADING_PID = new PIDCoefficients(3.9, 0, 0); // switched I to D
 
     public enum Mode {
         IDLE,
@@ -68,6 +69,7 @@ public abstract class SampleMecanumDriveBase extends MecanumDrive {
     private DriveConstraints constraintsFaster;
     private DriveConstraints constraintsFinish;
     public DriveConstraints constraintsMed;
+    public DriveConstraints constraintsFoundation;
     private TrajectoryFollower follower;
 
     private List<Double> lastWheelPositions;
@@ -91,6 +93,7 @@ public abstract class SampleMecanumDriveBase extends MecanumDrive {
         constraintsSlow = new MecanumConstraints(SLOW_CONSTRAINTS, TRACK_WIDTH);
         constraintsFast = new MecanumConstraints(FAST_CONSTRAINTS, TRACK_WIDTH);
         constraintsFaster = new MecanumConstraints(FASTER_CONSTRAINTS, TRACK_WIDTH);
+        constraintsFoundation = new MecanumConstraints(FOUNDATION_CONSTRAINTS, TRACK_WIDTH);
         constraintsMed = new MecanumConstraints(MED_CONSTRAINTS, TRACK_WIDTH);
         follower = new HolonomicPIDVAFollower(AXIAL_PID, LATERAL_PID, HEADING_PID);
     }
@@ -113,6 +116,10 @@ public abstract class SampleMecanumDriveBase extends MecanumDrive {
 
     public TrajectoryBuilder trajectoryBuilderFaster() {
         return new TrajectoryBuilder(getPoseEstimate(), constraintsFaster);
+    }
+
+    public TrajectoryBuilder trajectoryBuilderFoundation() {
+        return new TrajectoryBuilder(getPoseEstimate(), constraintsFoundation);
     }
 
     public TrajectoryBuilder trajectoryBuilderMed() {
