@@ -37,7 +37,7 @@ import java.util.Map;
 
 @Config
 @Autonomous
-public class AutoRedNTX extends LinearOpMode {
+public class AutoRedNTX2 extends LinearOpMode {
     ElapsedTime timer = new ElapsedTime();
     public static double stone1 = 0;
     public static double stone2 = 0;
@@ -235,10 +235,8 @@ public class AutoRedNTX extends LinearOpMode {
         delay(.25);
         drive.setPoseEstimate(new Pose2d(-38, -63, 0));
         LsetRotate(L_ROTATE_SIDE);
-//        LsetClaw(L_CLAW_STOW);
-//        LsetArm(L_ARM_STOW);
-        LsetArm(L_ARM_OVER);
-        LsetClaw(L_CLAW_RELEASE);
+        LsetClaw(L_CLAW_STOW);
+        LsetArm(L_ARM_STOW);
         RsetRotate(R_ROTATE_SIDE);
         RsetArm(R_ARM_STOW);
         RsetClaw(R_CLAW_STOW);
@@ -247,13 +245,13 @@ public class AutoRedNTX extends LinearOpMode {
         // First Pick-Up
         followTrajectoryArmSync(
                 drive.trajectoryBuilderFast()
-                        .strafeTo(new Vector2d(STONES_X[STONE_OPTIONS[stonePos][stoneIndex = 0]] + 2, -38))
+                        .strafeTo(new Vector2d(STONES_X[STONE_OPTIONS[stonePos][stoneIndex = 0]], -38))
                         .build()
                 , State.DEFAULT
         );
         followTrajectoryArmSync(
                 drive.trajectoryBuilderFast()
-                        .strafeTo(new Vector2d(STONES_X[STONE_OPTIONS[stonePos][stoneIndex = 0]], -35))
+                        .strafeTo(new Vector2d(STONES_X[STONE_OPTIONS[stonePos][stoneIndex = 0]], -38))
                         .build()
                 , State.DEFAULT
         );
@@ -328,7 +326,7 @@ public class AutoRedNTX extends LinearOpMode {
         // Go back and Second Pick-Up
         followTrajectoryArmSync(
                 drive.trajectoryBuilder()
-                        .splineTo(new Pose2d(12, ALLEY_Y - 1, Math.toRadians(-180)), constInterp180)
+                        .splineTo(new Pose2d(12, ALLEY_Y, Math.toRadians(-180)), constInterp180)
                         .splineTo(new Pose2d(STONES_X[STONE_OPTIONS[stonePos][1]],ALLEY_Y,Math.toRadians(-180)), constInterp180)
                         .build()
                 , State.TO_QUARRY
@@ -343,7 +341,7 @@ public class AutoRedNTX extends LinearOpMode {
                 drive.trajectoryBuilder()
                         .reverse()
                         .lineTo(new Vector2d(-10, ALLEY_Y), constInterp180)
-                        .lineTo(new Vector2d(foundationX+1, ALLEY_Y-3), constInterp180)
+                        .lineTo(new Vector2d(foundationX+1, ALLEY_Y-2), constInterp180)
                         .build()
                 , State.TO_FOUNDATION
         );
@@ -372,7 +370,7 @@ public class AutoRedNTX extends LinearOpMode {
                 drive.trajectoryBuilder()
                         .reverse()
                         .lineTo(new Vector2d(-10, ALLEY_Y), constInterp180)
-                        .lineTo(new Vector2d(foundationX-3, ALLEY_Y-4), constInterp180)
+                        .lineTo(new Vector2d(foundationX-3, ALLEY_Y-3), constInterp180)
                         .build()
                 , State.TO_FOUNDATION);
         drive.update();
