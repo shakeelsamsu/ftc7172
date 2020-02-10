@@ -18,6 +18,7 @@ import java.util.List;
 
 import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
 import org.firstinspires.ftc.teamcode.drive.localizer.StandardTrackingWheelLocalizer;
+import org.firstinspires.ftc.teamcode.drive.localizer.StandardTrackingWheelLocalizerNewRadii;
 import org.firstinspires.ftc.teamcode.util.AxesSigns;
 import org.firstinspires.ftc.teamcode.util.BNO055IMUUtil;
 import org.firstinspires.ftc.teamcode.util.LynxModuleUtil;
@@ -74,7 +75,8 @@ public class SampleMecanumDriveREVOptimized extends SampleMecanumDriveBase {
         rightFront.setDirection(DcMotor.Direction.FORWARD); // 7172
         rightRear.setDirection(DcMotor.Direction.FORWARD); // 7172
 
-        setLocalizer(new StandardTrackingWheelLocalizer(hardwareMap)); // 7172
+//        setLocalizer(new StandardTrackingWheelLocalizer(hardwareMap)); // 7172
+        setLocalizer(new StandardTrackingWheelLocalizerNewRadii(hardwareMap)); // 7172
     }
 
     @Override
