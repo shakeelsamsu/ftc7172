@@ -1,6 +1,7 @@
 package org.firstinspires.ftc.teamcode.drive.techdiff;
 
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.util.Range;
 import com.vuforia.Frame;
@@ -19,6 +20,7 @@ import org.firstinspires.ftc.robotcore.external.tfod.TFObjectDetector;
 import java.nio.ByteBuffer;
 import java.util.List;
 
+@Disabled
 @Autonomous
 public class SSVisionTest extends LinearOpMode {
 

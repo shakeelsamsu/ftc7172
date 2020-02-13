@@ -75,7 +75,6 @@ public class SampleMecanumDriveREVOptimized extends SampleMecanumDriveBase {
         rightFront.setDirection(DcMotor.Direction.FORWARD); // 7172
         rightRear.setDirection(DcMotor.Direction.FORWARD); // 7172
 
-//        setLocalizer(new StandardTrackingWheelLocalizer(hardwareMap)); // 7172
         setLocalizer(new StandardTrackingWheelLocalizerNewRadii(hardwareMap)); // 7172
     }
 

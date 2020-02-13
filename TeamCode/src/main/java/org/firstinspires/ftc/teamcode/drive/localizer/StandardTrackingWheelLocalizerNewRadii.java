@@ -39,7 +39,8 @@ public class StandardTrackingWheelLocalizerNewRadii extends ThreeTrackingWheelLo
 //    public static double FORWARD_OFFSET = -6; // in; offset of the lateral wheel
 //    public static double LATERAL_OFFSET = -.75; //in; offset of the lateral wheel in the y direction
 
-    public static double LATERAL_DISTANCE = 12.7; // in; distance between the left and right wheels
+//    public static double LATERAL_DISTANCE = 12.7; // in; distance between the left and right wheels
+    public static double LATERAL_DISTANCE = 13.35; // in; distance between the left and right wheels
     public static double FORWARD_OFFSET = -6; // in; offset of the lateral wheel
     public static double LATERAL_OFFSET = -0.75; //in; offset of the lateral wheel in the y direction
 

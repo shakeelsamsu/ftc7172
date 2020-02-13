@@ -46,8 +46,12 @@ public abstract class SampleMecanumDriveBase extends MecanumDrive {
     // 7172
     public static PIDCoefficients AXIAL_PID = new PIDCoefficients(2.8, 0, 0.22);
     public static PIDCoefficients LATERAL_PID = new PIDCoefficients(2.9, 0, 0.1);
-//    public static PIDCoefficients HEADING_PID = new PIDCoefficients(3.2, 0, 0); // switched I to D
     public static PIDCoefficients HEADING_PID = new PIDCoefficients(3, 0, 0); // switched I to D
+
+//    public static PIDCoefficients AXIAL_PID = new PIDCoefficients(2.8, 0, 0.22);
+//    public static PIDCoefficients LATERAL_PID = new PIDCoefficients(5, 0, 0.1);
+//    public static PIDCoefficients HEADING_PID = new PIDCoefficients(12, 0, 0); // switched I to D
+
 
 //    public static PIDCoefficients AXIAL_PID = new PIDCoefficients(0, 0, 0);
 //    public static PIDCoefficients LATERAL_PID = new PIDCoefficients(0, 0, 0);
@@ -188,11 +192,12 @@ public abstract class SampleMecanumDriveBase extends MecanumDrive {
 
         packet.put("x", currentPose.getX());
         packet.put("y", currentPose.getY());
-        packet.put("heading", currentPose.getHeading());
+        packet.put("odo heading", Math.toDegrees(currentPose.getHeading()));
+//        packet.put("imu heading", Math.toDegrees());
 
         packet.put("xError", lastError.getX());
         packet.put("yError", lastError.getY());
-        packet.put("headingError", lastError.getHeading());
+        packet.put("headingError", Math.toDegrees(lastError.getHeading()));
 
         switch (mode) {
             case IDLE:

@@ -37,7 +37,7 @@ import java.util.Map;
 
 @Config
 @Autonomous
-public class AutoRedNTX2 extends LinearOpMode {
+public class AutoBlueNTX extends LinearOpMode {
     ElapsedTime timer = new ElapsedTime();
     public static double stone1 = 0;
     public static double stone2 = 0;
@@ -80,13 +80,14 @@ public class AutoRedNTX2 extends LinearOpMode {
     private int SECOND_STONE_OFFSET = 0;
     private int THIRD_STONE_OFFSET = -3;
 
-    private static double ALLEY_Y = -39;
+    private static double ALLEY_Y = 36;
 
     ConstantInterpolator constInterp = new ConstantInterpolator(0);
-    ConstantInterpolator constInterp90 = new ConstantInterpolator(Math.toRadians(-90));
-    ConstantInterpolator constInterp180 = new ConstantInterpolator(Math.toRadians(-180));
-    LinearInterpolator linInterp = new LinearInterpolator(0, Math.toRadians(-90));
-    LinearInterpolator linInterp2 = new LinearInterpolator(Math.toRadians(-90), Math.toRadians(-90));
+    ConstantInterpolator constInterp90 = new ConstantInterpolator(Math.toRadians(90));
+    ConstantInterpolator constInterp180 = new ConstantInterpolator(Math.toRadians(180));
+    LinearInterpolator linInterp = new LinearInterpolator(0, Math.toRadians(90));
+    LinearInterpolator linInterp2 = new LinearInterpolator(Math.toRadians(90), Math.toRadians(90));
+    LinearInterpolator linInterp5 = new LinearInterpolator(Math.toRadians(0), Math.toRadians(5));
 
     private static double stoneOffset = 5;
 
@@ -106,8 +107,9 @@ public class AutoRedNTX2 extends LinearOpMode {
     private ElapsedTime clock = new ElapsedTime();
     // good: 0 1 5
 
-    public static final double[] STONES_X = {-29.5, -37.5, -45.5, -44, -52, -64};
     public static final double[] STONES_INTAKE_X = {-31.5, -31.5, -45.5, -44, -52, -64};
+
+    public static final double[] STONES_X = {-31.5, -38.5, -47.5, -41, -52, -60};
     public static final int[][] STONE_OPTIONS = {{5, 0, 1, 2}, {5, 2, 0, 1}, {4, 1, 0, 2}, {3, 0, 1, 2}};
 
     private Servo rarm;
@@ -124,7 +126,7 @@ public class AutoRedNTX2 extends LinearOpMode {
     private SampleMecanumDriveBase drive;
     private State state;
     private Claw clawSide;
-    private Claw CLAW_SIDE = clawSide.LEFT;
+    private Claw CLAW_SIDE = clawSide.RIGHT;
     private ElapsedTime liftClock = new ElapsedTime();
 
     private static final String TFOD_MODEL_ASSET = "Skystone.tflite";
@@ -173,7 +175,7 @@ public class AutoRedNTX2 extends LinearOpMode {
 
     public HashMap<String, String> logger = new HashMap<String, String>();
 
-    public double FOUNDATION_DELAY = 1;
+    public double FOUNDATION_DELAY = 1.6;
 
     public void runOpMode() {
         dashboard = FtcDashboard.getInstance();
@@ -222,6 +224,7 @@ public class AutoRedNTX2 extends LinearOpMode {
                 "\nDPAD_DOWN: row - 5" +
                 "\nDPAD_LEFT and DPAD_RIGHT: MANUAL positions");
         while (!opModeIsActive() && !isStopRequested()) {
+            telemetry.addData("BLUE AUTO", true);
             telemetry.addData("mode", (mode == Mode.TF ? "TF"
                     : (mode == Mode.AVG ? "AVG" : "MANUAL")));
             telemetry.addData("selectRow?", selectRow);
@@ -233,43 +236,45 @@ public class AutoRedNTX2 extends LinearOpMode {
         liftClock.reset();
         lift1.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         delay(.25);
-        drive.setPoseEstimate(new Pose2d(-38, -63, 0));
-        LsetRotate(L_ROTATE_SIDE);
+        drive.setPoseEstimate(new Pose2d(-38, 63, 0));
+        RsetRotate(R_ROTATE_SIDE);
 //        LsetClaw(L_CLAW_STOW);
 //        LsetArm(L_ARM_STOW);
-        LsetArm(L_ARM_OVER);
-        LsetClaw(L_CLAW_RELEASE);
-        RsetRotate(R_ROTATE_SIDE);
-        RsetArm(R_ARM_STOW);
-        RsetClaw(R_CLAW_STOW);
+        RsetArm(R_ARM_OVER);
+        RsetClaw(R_CLAW_RELEASE);
+        LsetRotate(L_ROTATE_SIDE);
+        LsetArm(L_ARM_STOW);
+        LsetClaw(L_CLAW_STOW);
         setFoundation(FOUNDATION_RELEASE);
 
         // First Pick-Up
         followTrajectoryArmSync(
                 drive.trajectoryBuilderFast()
-                        .strafeTo(new Vector2d(STONES_X[STONE_OPTIONS[stonePos][stoneIndex = 0]] + 2, -38))
+                        .lineTo(new Vector2d(STONES_X[STONE_OPTIONS[stonePos][stoneIndex = 0]] + 2, 38), constInterp)
                         .build()
                 , State.DEFAULT
         );
         followTrajectoryArmSync(
                 drive.trajectoryBuilderFast()
-                        .strafeTo(new Vector2d(STONES_X[STONE_OPTIONS[stonePos][stoneIndex = 0]], -35))
+                        .lineTo(new Vector2d(STONES_X[STONE_OPTIONS[stonePos][stoneIndex = 0]], 35), constInterp)
                         .build()
                 , State.DEFAULT
         );
         stone1 = drive.getPoseEstimate().getY();
-        strafeAndGrab(drive,-stone1-33);
+        strafeAndGrab(drive,stone1-33);
 //        grab();
         drive.update();
         logString += "First pickup " + clock.seconds() + " ";
         logger.put("First pickup", String.format("%.3f", clock.seconds()));
 
+        drive.setPoseEstimate(new Pose2d(drive.getPoseEstimate().getX(), drive.getPoseEstimate().getY(), drive.getExternalHeading()));
+
         // Go to Foundation
         followTrajectoryArmSync(
                 drive.trajectoryBuilder()
-                        .lineTo(new Vector2d(10, -40))
-                        .lineTo(new Vector2d(47, -43), linInterp)
-                        .lineTo(new Vector2d(47,-28), constInterp90)
+                        .lineTo(new Vector2d(10, 44))
+                        .lineTo(new Vector2d(47, 46), linInterp)
+//                        .lineTo(new Vector2d(47,26), constInterp90)
                         .build()
                 , State.GRAB_FOUNDATION);
         drive.update();
@@ -285,33 +290,34 @@ public class AutoRedNTX2 extends LinearOpMode {
 
 
 
-//        double now = clock.seconds();
-//
-//        while(opModeIsActive() && clock.seconds() < now + FOUNDATION_DELAY) {
-//            drive.setDrivePower(new Pose2d(-0.2, 0, 0));
-//            if(drive.getPoseEstimate().getY() > -30) {
-//                setFoundation(FOUNDATION_GRAB);
-//            }
-//            drive.update();
-//        }
+        double now = clock.seconds();
+
+        while(opModeIsActive() && clock.seconds() < now + FOUNDATION_DELAY) {
+            drive.setDrivePower(new Pose2d(-0.25, 0, 0));
+            if(drive.getPoseEstimate().getY() < 26) {
+                setFoundation(FOUNDATION_GRAB);
+            }
+            drive.update();
+        }
 
         // Move Foundation
         followTrajectoryArmSync(
                 drive.trajectoryBuilderFoundation()
-                        .splineTo(new Pose2d(24, -46, Math.toRadians(-180)))
+                        .splineTo(new Pose2d(24, 46, Math.toRadians(180)))
                         .build()
                 , State.DEFAULT
         );
         followTrajectoryArmSync(
                 drive.trajectoryBuilder()
-                .splineTo(new Pose2d(24, -46, Math.toRadians((-180))))
+                .lineTo(new Vector2d(24, 46), constInterp180)
                 .build()
                 , State.DEFAULT
         );
         deposit();
         delay(0.4);
+        drive.setPoseEstimate(new Pose2d(drive.getPoseEstimate().getX(), drive.getPoseEstimate().getY(), drive.getExternalHeading()));
 
-        LsetClaw(L_CLAW_RELEASE);
+        RsetClaw(R_CLAW_RELEASE);
         setFoundation(FOUNDATION_RELEASE);
         foundationX = drive.getPoseEstimate().getX();
         foundationReached = true;
@@ -319,18 +325,18 @@ public class AutoRedNTX2 extends LinearOpMode {
         logger.put("First deposit", String.format("%.3f", clock.seconds()));
 
         // Switch claw/arm sides
-        CLAW_SIDE = clawSide.RIGHT;
-        LsetRotate(L_ROTATE_SIDE);
-        LsetArm(L_ARM_STOW);
-        LsetClaw(L_CLAW_STOW);
+        CLAW_SIDE = clawSide.LEFT;
+        RsetRotate(R_ROTATE_SIDE);
         RsetArm(R_ARM_STOW);
         RsetClaw(R_CLAW_STOW);
+        LsetArm(L_ARM_STOW);
+        LsetClaw(L_CLAW_STOW);
 
         // Go back and Second Pick-Up
 //        followTrajectoryArmSync(
 //                drive.trajectoryBuilder()
-//                        .splineTo(new Pose2d(12, ALLEY_Y, Math.toRadians(-180)), constInterp180)
-//                        .splineTo(new Pose2d(STONES_X[STONE_OPTIONS[stonePos][1]],ALLEY_Y,Math.toRadians(-180)), constInterp180)
+//                        .splineTo(new Pose2d(12, ALLEY_Y, Math.toRadians(180)), constInterp180)
+//                        .splineTo(new Pose2d(STONES_X[STONE_OPTIONS[stonePos][1]],ALLEY_Y,Math.toRadians(180)), constInterp180)
 //                        .build()
 //                , State.TO_QUARRY
 //        );
@@ -342,7 +348,7 @@ public class AutoRedNTX2 extends LinearOpMode {
                 , State.TO_QUARRY
         );
         stone2 = drive.getPoseEstimate().getY();
-        strafeAndGrab(drive, -stone2 - 32.5);
+        strafeAndGrab(drive, stone2 - 32.5);
         drive.update();
         logger.put("Second pickup", String.format("%.3f", clock.seconds()));
 
@@ -351,7 +357,7 @@ public class AutoRedNTX2 extends LinearOpMode {
                 drive.trajectoryBuilder()
                         .reverse()
                         .lineTo(new Vector2d(-10, ALLEY_Y), constInterp180)
-                        .lineTo(new Vector2d(foundationX+1, ALLEY_Y-2), constInterp180)
+                        .lineTo(new Vector2d(foundationX+1, ALLEY_Y+3), constInterp180)
                         .build()
                 , State.TO_FOUNDATION
         );
@@ -360,6 +366,8 @@ public class AutoRedNTX2 extends LinearOpMode {
         foundationX = drive.getPoseEstimate().getX();
         logString += "Second deposit " + clock.seconds() + "\n";
         logger.put("Second deposit", String.format("%.3f", clock.seconds()));
+
+        drive.setPoseEstimate(new Pose2d(drive.getPoseEstimate().getX(), drive.getPoseEstimate().getY(), drive.getExternalHeading()));
 
         updated = false;
 
@@ -372,7 +380,7 @@ public class AutoRedNTX2 extends LinearOpMode {
                 , State.TO_QUARRY);
         drive.update();
         stone3 = drive.getPoseEstimate().getY();
-        strafeAndGrab(drive, -stone3-32);
+        strafeAndGrab(drive, stone3-32);
         logger.put("Third pickup", String.format("%.3f", clock.seconds()));
 
         // Go to foundation 3
@@ -380,7 +388,7 @@ public class AutoRedNTX2 extends LinearOpMode {
                 drive.trajectoryBuilder()
                         .reverse()
                         .lineTo(new Vector2d(-10, ALLEY_Y), constInterp180)
-                        .lineTo(new Vector2d(foundationX-3, ALLEY_Y-3), constInterp180)
+                        .lineTo(new Vector2d(foundationX-2, ALLEY_Y+3), constInterp180)
                         .build()
                 , State.TO_FOUNDATION);
         drive.update();
@@ -392,6 +400,8 @@ public class AutoRedNTX2 extends LinearOpMode {
 
         updated = false;
 
+        drive.setPoseEstimate(new Pose2d(drive.getPoseEstimate().getX(), drive.getPoseEstimate().getY(), drive.getExternalHeading()));
+
         // go to fourth stone pickup
         followTrajectoryArmSync(
                 drive.trajectoryBuilder()
@@ -401,7 +411,7 @@ public class AutoRedNTX2 extends LinearOpMode {
                 , State.TO_QUARRY);
         drive.update();
         double stone4 = drive.getPoseEstimate().getY();
-        strafeAndGrab(drive, -stone4-31);
+        strafeAndGrab(drive, stone4-31);
 //        strafeAndGrab(drive, -drive.getPoseEstimate().getY() - 31.5);
         logger.put("Fourth pickup", String.format("%.3f", clock.seconds()));
 
@@ -409,8 +419,8 @@ public class AutoRedNTX2 extends LinearOpMode {
         followTrajectoryArmSync(
                 drive.trajectoryBuilder()
                         .reverse()
-                        .splineTo(new Pose2d(-10, ALLEY_Y, Math.toRadians(-180)))
-                        .splineTo(new Pose2d(30, ALLEY_Y-10, Math.toRadians(-180)))
+                        .splineTo(new Pose2d(-10, ALLEY_Y, Math.toRadians(180)))
+                        .splineTo(new Pose2d(30, ALLEY_Y+10, Math.toRadians(180)))
                         .build()
                 , State.TO_FOUNDATION);
         drive.update();
@@ -419,13 +429,13 @@ public class AutoRedNTX2 extends LinearOpMode {
         followTrajectoryArmSync(
                 drive.trajectoryBuilder()
                         .reverse()
-                        .splineTo(new Pose2d(49, ALLEY_Y-10, Math.toRadians(-180)))
+                        .splineTo(new Pose2d(49, ALLEY_Y+10, Math.toRadians(180)))
                         .build()
                 , State.TO_FOUNDATION);
         drive.update();
 
         deposit();
-        RsetArm(R_ARM_STOW);
+        LsetArm(R_ARM_STOW);
 //        delay(.15);
         logString += "Fourth deposit " + clock.seconds() + "\n";
         logger.put("Fourth deposit", String.format("%.3f", clock.seconds()));
@@ -433,7 +443,7 @@ public class AutoRedNTX2 extends LinearOpMode {
         // Park
         followTrajectoryArmSync(
                 drive.trajectoryBuilder()
-                        .splineTo(new Pose2d(4, ALLEY_Y, Math.toRadians(-180)))
+                        .splineTo(new Pose2d(4, ALLEY_Y, Math.toRadians(180)))
                         .build()
                 , State.TO_FINISH
         );
@@ -618,19 +628,19 @@ public class AutoRedNTX2 extends LinearOpMode {
                             deposit();
                         }
                         if (drive.getPoseEstimate().getX() > foundationX - DEPOSIT_OFFSET) {
-                            RsetArm(R_ARM_STOW);
+                            LsetArm(L_ARM_STOW);
                         }
                     }
                     break;
                 case TO_QUARRY:
                     if (!updated && drive.getPoseEstimate().getX() < STONE_OPTIONS[stonePos][stoneIndex] + 5) {
                         updated = true;
-                        stoneOffset = -drive.getPoseEstimate().getY()-31;
+                        stoneOffset = drive.getPoseEstimate().getY()-31;
                     }
                     if (drive.getPoseEstimate().getX() < -15) {
-                        RsetClaw(R_CLAW_RELEASE);
-                        RsetArm(R_ARM_OVER);
-                        RsetRotate(R_ROTATE_SIDE);
+                        LsetClaw(L_CLAW_RELEASE);
+                        LsetArm(L_ARM_OVER);
+                        LsetRotate(L_ROTATE_SIDE);
                     }
 //                    if(drive.getPoseEstimate().getX() > 15) {
 //                        RsetClaw(R_CLAW_STOW);
@@ -638,10 +648,10 @@ public class AutoRedNTX2 extends LinearOpMode {
                     break;
                 case TO_FINISH:
                     if (drive.getPoseEstimate().getX() > -15) {
-                        RsetClaw(R_CLAW_STOW);
-                        RsetArm(R_ARM_STOW);
+                        LsetClaw(L_CLAW_STOW);
+                        LsetArm(L_ARM_STOW);
                         delay(0.3);
-                        RsetRotate(R_ROTATE_SIDE);
+                        LsetRotate(L_ROTATE_SIDE);
                     }
                     break;
                 case GRAB_FOUNDATION:
@@ -657,7 +667,7 @@ public class AutoRedNTX2 extends LinearOpMode {
                             LsetArm(L_ARM_STOW);
                         }
                     }
-                    if (drive.getPoseEstimate().getY() > -30) {
+                    if (drive.getPoseEstimate().getY() < 30) {
                         setFoundation(FOUNDATION_GRAB);
                     }
                     break;
@@ -669,7 +679,7 @@ public class AutoRedNTX2 extends LinearOpMode {
 
     private void initVuforia() {
         VuforiaLocalizer.Parameters parameters = new VuforiaLocalizer.Parameters();
-        parameters.cameraName = hardwareMap.get(WebcamName.class, "redCam");
+        parameters.cameraName = hardwareMap.get(WebcamName.class, "blueCam");
         parameters.vuforiaLicenseKey = VUFORIA_KEY;
         parameters.cameraDirection = VuforiaLocalizer.CameraDirection.BACK;
         vuforia = ClassFactory.getInstance().createVuforia(parameters);
@@ -751,9 +761,9 @@ public class AutoRedNTX2 extends LinearOpMode {
         int pos = 0;
         getSkystone();
         if (stoneHeading < -10)
-            pos = 1;
-        else if (stoneHeading > 10)
             pos = 3;
+        else if (stoneHeading > 10)
+            pos = 1;
         else
             pos = 2;
         displayStoneInfo(telemetry);
@@ -788,10 +798,10 @@ public class AutoRedNTX2 extends LinearOpMode {
         // telemetry.update();
         int min = Math.min(Math.min(avg1, avg2), avg3);
         if (min == avg1)
-            return 1;
+            return 3;
         if (min == avg2)
             return 2;
-        return 3;
+        return 1;
     }
 
     public int getPosition() {
