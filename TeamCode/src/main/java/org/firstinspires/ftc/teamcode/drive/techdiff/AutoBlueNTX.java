@@ -299,6 +299,8 @@ public class AutoBlueNTX extends LinearOpMode {
             }
             drive.update();
         }
+        setFoundation(FOUNDATION_GRAB);
+
 
         // Move Foundation
         followTrajectoryArmSync(

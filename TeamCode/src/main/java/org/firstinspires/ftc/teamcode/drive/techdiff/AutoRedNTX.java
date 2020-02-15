@@ -282,25 +282,26 @@ public class AutoRedNTX extends LinearOpMode {
 //        delay(100000);
 
         // Move Foundation and deposit
-        followTrajectoryArmSync(
-                drive.trajectoryBuilderSlow()
-                        .back(Math.abs(drive.getPoseEstimate().getY() + 22))
-                        .build()
-                , State.GRAB_FOUNDATION
-        );
+        // feb 13
+//        followTrajectoryArmSync(
+//                drive.trajectoryBuilderSlow()
+//                        .back(Math.abs(drive.getPoseEstimate().getY() + 22))
+//                        .build()
+//                , State.GRAB_FOUNDATION
+//        );
+//        setFoundation(FOUNDATION_GRAB);
+
+        // Move Foundation and deposit
+        double now = clock.seconds();
+
+        while(opModeIsActive() && clock.seconds() < now + FOUNDATION_DELAY) {
+            drive.setDrivePower(new Pose2d(-0.25, 0, 0));
+            if(drive.getPoseEstimate().getY() > -26.5) {
+                setFoundation(FOUNDATION_GRAB);
+            }
+            drive.update();
+        }
         setFoundation(FOUNDATION_GRAB);
-
-
-
-//        double now = clock.seconds();
-//
-//        while(opModeIsActive() && clock.seconds() < now + FOUNDATION_DELAY) {
-//            drive.setDrivePower(new Pose2d(-0.2, 0, 0));
-//            if(drive.getPoseEstimate().getY() > -30) {
-//                setFoundation(FOUNDATION_GRAB);
-//            }
-//            drive.update();
-//        }
 
         // Move Foundation
         followTrajectoryArmSync(
