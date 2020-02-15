@@ -80,7 +80,7 @@ public class AutoRedNTX extends LinearOpMode {
     private int SECOND_STONE_OFFSET = 0;
     private int THIRD_STONE_OFFSET = -3;
 
-    private static double ALLEY_Y = -40;
+    static double ALLEY_Y = -42;
 
     ConstantInterpolator constInterp = new ConstantInterpolator(0);
     ConstantInterpolator constInterp90 = new ConstantInterpolator(Math.toRadians(-90));
@@ -487,6 +487,7 @@ public class AutoRedNTX extends LinearOpMode {
 
     public void strafeAndGrab(SampleMecanumDriveBase drive, double offset) {
         if (CLAW_SIDE == clawSide.LEFT) {
+            liftPower(-0.5);
             LsetArm(L_ARM_OVER);
             LsetClaw(L_CLAW_RELEASE);
             followTrajectoryArmSync(
@@ -506,7 +507,9 @@ public class AutoRedNTX extends LinearOpMode {
                     , State.DEFAULT
             );
             LsetArm(L_ARM_STOW);
+            liftPower(0);
         } else {
+            liftPower(-0.5);
             RsetArm(R_ARM_OVER);
             RsetClaw(R_CLAW_RELEASE);
             followTrajectoryArmSync(
@@ -526,6 +529,7 @@ public class AutoRedNTX extends LinearOpMode {
                     , State.DEFAULT
             );
             RsetArm(R_ARM_STOW);
+            liftPower(0);
         }
     }
 
@@ -596,7 +600,7 @@ public class AutoRedNTX extends LinearOpMode {
             liftPower(0.5);
         } else if (liftClock.seconds() < 1.0) {
             liftPower(0);
-        } else if (liftClock.seconds() < 5.0 && lift1.getCurrentPosition() < -200) {
+        } else if (liftClock.seconds() < 5.0 && lift1.getCurrentPosition() < 200) {
             liftPower(-0.5);
         } else {
             liftPower(0);
