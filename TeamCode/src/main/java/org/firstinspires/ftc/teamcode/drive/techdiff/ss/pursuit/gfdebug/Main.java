@@ -1,9 +1,8 @@
-package org.firstinspires.ftc.teamcode.drive.techdiff.ss.pursuit;
+package org.firstinspires.ftc.teamcode.drive.techdiff.ss.pursuit.gfdebug;
 
-import com.qualcomm.robotcore.eventloop.opmode.OpMode;
+import org.firstinspires.ftc.teamcode.drive.techdiff.ss.pursuit.gfdebug.OpMode;
 
-import org.firstinspires.ftc.teamcode.drive.techdiff.ss.pursuit.gfdebug.ComputerDebugging;
-import org.firstinspires.ftc.teamcode.drive.techdiff.ss.pursuit.gfdebug.Robot;
+import org.firstinspires.ftc.teamcode.drive.techdiff.ss.pursuit.SSPursuitOpMode;
 
 public class Main
 {
@@ -14,7 +13,7 @@ public class Main
     public void run() {
         final ComputerDebugging computerDebugging = new ComputerDebugging();
         final Robot robot = new Robot();
-        final OpMode opMode = (OpMode)new SSPursuitOpMode();
+//        final OpMode opMode = (OpMode) new DebugOpMode();
 //        opMode.init();
         ComputerDebugging.clearLogPoints();
         final long startTime = System.currentTimeMillis();
@@ -25,7 +24,7 @@ public class Main
             e.printStackTrace();
         }
         while (true) {
-            opMode.loop();
+//            opMode.loop();
             try {
                 Thread.sleep(30L);
             }

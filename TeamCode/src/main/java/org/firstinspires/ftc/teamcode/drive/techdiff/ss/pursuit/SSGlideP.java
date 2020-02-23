@@ -1,13 +1,11 @@
 package org.firstinspires.ftc.teamcode.drive.techdiff.ss.pursuit;
 
-import android.graphics.Point;
-
 import com.acmerobotics.roadrunner.geometry.Pose2d;
 import com.acmerobotics.roadrunner.localization.ThreeTrackingWheelLocalizer;
+import com.acmerobotics.roadrunner.util.NanoClock;
 import com.company.FloatPoint;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.HardwareMap;
-import com.qualcomm.robotcore.util.Hardware;
 import com.qualcomm.robotcore.util.Range;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
@@ -15,6 +13,12 @@ import org.firstinspires.ftc.teamcode.drive.localizer.StandardTrackingWheelLocal
 import org.firstinspires.ftc.teamcode.drive.techdiff.ss.pursuit.gfdebug.ComputerDebugging;
 
 import java.util.ArrayList;
+
+import com.acmerobotics.dashboard.FtcDashboard;
+import com.acmerobotics.dashboard.canvas.Canvas;
+import com.acmerobotics.dashboard.config.Config;
+import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
+
 
 import static org.firstinspires.ftc.teamcode.drive.techdiff.ss.pursuit.MovementVars.movement_x;
 import static org.firstinspires.ftc.teamcode.drive.techdiff.ss.pursuit.MovementVars.movement_y;
@@ -33,10 +37,18 @@ public class SSGlideP {
     IndexedPoint closestToLine;
     SSCurvePoint followMe;
 
+    private FtcDashboard dashboard;
+    private NanoClock clock;
+
     public SSGlideP() {
         movement_x = 0;
         movement_y = 0;
         movement_turn = 0;
+
+        dashboard = FtcDashboard.getInstance();
+        dashboard.setTelemetryTransmissionInterval(25);
+
+        clock = NanoClock.system();
     }
 
     /**
@@ -130,8 +142,10 @@ public class SSGlideP {
         currFollowIndex = closestToLine.index;
 
 
-        followMe = new SSCurvePoint(pathPoints.get(currFollowIndex + 1));
-        followMe.setPoint(new SSPoint(closestToLine.x, closestToLine.y));
+//        followMe = new SSCurvePoint(pathPoints.get(currFollowIndex + 1));
+//        followMe.setPoint(new SSPoint(closestToLine.x, closestToLine.y));
+
+        followMe = new SSCurvePoint(pathPoints.get(0));
 
         for(int i = 0; i < pathPoints.size() - 1; i++) {
             SSCurvePoint startLine = pathPoints.get(i);
@@ -154,23 +168,35 @@ public class SSGlideP {
     }
 
     public void followCurve(ArrayList<SSCurvePoint> allPoints, double followAngle) {
+        update();
         double worldX = localizer.getPoseEstimate().getX();
         double worldY = localizer.getPoseEstimate().getY();
         double worldHeading = localizer.getPoseEstimate().getHeading();
 
+        TelemetryPacket packet = new TelemetryPacket();
+        Canvas fieldOverlay = packet.fieldOverlay();
+
+        fieldOverlay.setFill("#3F51B5");
+        fieldOverlay.fillRect(worldX, worldY, 7, 7);
+
         for(int i = 0; i < allPoints.size() - 1; i++) {
-            ComputerDebugging.sendLine(new FloatPoint(allPoints.get(i).x, allPoints.get(i).y),
-                new FloatPoint(allPoints.get(i + 1).x, allPoints.get(i + 1).y));
+//            ComputerDebugging.sendLine(new FloatPoint(allPoints.get(i).x, allPoints.get(i).y),
+//                new FloatPoint(allPoints.get(i + 1).x, allPoints.get(i + 1).y));
             // Insert Debugging Code Here eventually
+            fieldOverlay.setFill("#FF0000");
+            fieldOverlay.fillCircle(allPoints.get(i).x, allPoints.get(i).y, 2);
         }
 
-        ComputerDebugging.sendKeyPoint(new FloatPoint(followMe.x, followMe.y));
+//        ComputerDebugging.sendKeyPoint(new FloatPoint(followMe.x, followMe.y));
+
+        SSCurvePoint followMe = getFollowPointPath(allPoints, new SSPoint(worldX, worldY), allPoints.get(0).followDist);
 
         // Only uses the first follow distance
         // TODO: Figure out how to smooth out the followDist and stuff
-        SSCurvePoint followMe = getFollowPointPath(allPoints, new SSPoint(worldX, worldY), allPoints.get(currFollowIndex + 1).followDist);
+//        SSCurvePoint followMe = getFollowPointPath(allPoints, new SSPoint(worldX, worldY), allPoints.get(currFollowIndex + 1).followDist);
         goToPosition(followMe.x, followMe.y, followMe.moveSpeed, followAngle, followMe.turnSpeed);
 
+        dashboard.sendTelemetryPacket(packet);
     }
 
     public IndexedPoint findIndex(ArrayList<SSCurvePoint> allPoints, double x, double y) {
@@ -225,5 +251,20 @@ public class SSGlideP {
             this.y = y;
             this.index = index;
         }
+    }
+
+    public void update() {
+        localizer.update();
+        TelemetryPacket packet = new TelemetryPacket();
+        Canvas fieldOverlay = packet.fieldOverlay();
+
+        packet.put("x", localizer.getPoseEstimate().getX());
+        packet.put("y", localizer.getPoseEstimate().getY());
+        packet.put("odo heading", Math.toDegrees(localizer.getPoseEstimate().getHeading()));
+
+//        fieldOverlay.setStroke("#3F51B5");
+//        fieldOverlay.fillRect(localizer.getPoseEstimate().getX(), localizer.getPoseEstimate().getY(), 7, 7);
+
+//        dashboard.sendTelemetryPacket(packet);
     }
 }

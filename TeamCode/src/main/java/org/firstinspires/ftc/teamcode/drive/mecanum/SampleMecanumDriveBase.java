@@ -193,7 +193,6 @@ public abstract class SampleMecanumDriveBase extends MecanumDrive {
         packet.put("x", currentPose.getX());
         packet.put("y", currentPose.getY());
         packet.put("odo heading", Math.toDegrees(currentPose.getHeading()));
-//        packet.put("imu heading", Math.toDegrees());
 
         packet.put("xError", lastError.getX());
         packet.put("yError", lastError.getY());

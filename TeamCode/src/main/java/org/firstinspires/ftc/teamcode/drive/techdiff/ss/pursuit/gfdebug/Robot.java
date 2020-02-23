@@ -1,7 +1,7 @@
 package org.firstinspires.ftc.teamcode.drive.techdiff.ss.pursuit.gfdebug;
 
-import org.firstinspires.ftc.teamcode.drive.techdiff.ss.pursuit.MovementVars;
 
+import org.firstinspires.ftc.teamcode.drive.techdiff.ss.pursuit.MovementVars;
 
 public class Robot {
     public static boolean usingComputer = true;
