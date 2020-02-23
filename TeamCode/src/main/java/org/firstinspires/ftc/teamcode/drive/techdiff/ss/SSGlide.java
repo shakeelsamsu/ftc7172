@@ -27,7 +27,7 @@ public class SSGlide {
 
     public DcMotorEx lift1 = null;
     public DcMotorEx lift2 = null;
-    private SSElevator lift;
+    private SSElevatorNew lift;
     // boolean manualLift = false;
     double liftPower = 0;
     int currLiftLevel = 0;
@@ -211,7 +211,7 @@ public class SSGlide {
         lift1.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         lift2.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
-        lift = new SSElevator(lift1, lift2, lift1, elevatorLimit);
+        lift = new SSElevatorNew(lift1, lift2, lift1, elevatorLimit);
         //accommodate for recent change
         // gantryTimer = new ElapsedTime();
 
@@ -295,13 +295,13 @@ public class SSGlide {
             t.addData("imuHeading", imuHeading);
         }
         if ((display & DISPLAY_LIFT) != 0) {
-            t.addData("lift.power", lift.getPower());
-            t.addData("lift.targetPower", lift.getTargetPower());
-            t.addData("lift.targetPosition", lift.getTargetPosition());
-            t.addData("lift.currentPosition", lift.getCurrentPosition());
+//            t.addData("lift.power", lift.getPower());
+//            t.addData("lift.targetPower", lift.getTargetPower());
+//            t.addData("lift.targetPosition", lift.getTargetPosition());
+//            t.addData("lift.currentPosition", lift.getCurrentPosition());
             t.addData("REVboreEncoder", rf.getCurrentPosition());
-            t.addData("lift.status", lift.getState());
-            t.addData("atTarget", isLiftAtTarget());
+//            t.addData("lift.status", lift.getState());
+//            t.addData("atTarget", isLiftAtTarget());
             t.addData("currLiftLevel", currLiftLevel);
             t.addData("elevatorlimit", elevatorLimit.getVoltage());
         }
@@ -473,45 +473,45 @@ public class SSGlide {
     //LIFT CODE
 
     public void liftPower(double power) {
-        lift.setTargetPower(liftPower = power);
+        lift.liftPower(liftPower = power);
     }
 
-    public void setLiftPosition(int position) {
-        lift.setTargetPosition(position);
-    }
+//    public void setLiftPosition(int position) {
+//        lift.setTargetPosition(position);
+//    }
 
     //goes to specific lift level
-    public void setLiftLevel(int level) {
-        if (level < 1) lift.setTargetHome();
-        else setLiftPosition(liftLevels[level]);
-        currLiftLevel = level;
-    }
+//    public void setLiftLevel(int level) {
+//        if (level < 1) lift.setTargetHome();
+//        else setLiftPosition(liftLevels[level]);
+//        currLiftLevel = level;
+//    }
 
     public int getLiftLevel() {
         return currLiftLevel;
     }
 
-    public int getLiftPosition() {
-        return lift.getCurrentPosition();
-    }
+//    public int getLiftPosition() {
+//        return lift.getCurrentPosition();
+//    }
 
-    public boolean isLiftAtTarget() {
-        return getLiftPosition() >= liftLevels[currLiftLevel] - LEVEL_DEAD_ZONE
-                && getLiftPosition() <= liftLevels[currLiftLevel] + LEVEL_DEAD_ZONE;
-    }
+//    public boolean isLiftAtTarget() {
+//        return getLiftPosition() >= liftLevels[currLiftLevel] - LEVEL_DEAD_ZONE
+//                && getLiftPosition() <= liftLevels[currLiftLevel] + LEVEL_DEAD_ZONE;
+//    }
 
-    public void autoHome(LinearOpMode o, double timeout) {
-        timeout += clock.seconds();
-        while (o.opModeIsActive()) {
-            if (clock.seconds() > timeout) break;
-            if (elevatorLimit.getVoltage() < 1) break;
-            lift.setTargetPower(-0.3);
-            update();
-        }
-        lift.setTargetPower(0);
-        currLiftLevel = 0;
-        update();
-    }
+//    public void autoHome(LinearOpMode o, double timeout) {
+//        timeout += clock.seconds();
+//        while (o.opModeIsActive()) {
+//            if (clock.seconds() > timeout) break;
+//            if (elevatorLimit.getVoltage() < 1) break;
+//            lift.setTargetPower(-0.3);
+//            update();
+//        }
+//        lift.setTargetPower(0);
+//        currLiftLevel = 0;
+//        update();
+//    }
     //INTAKE CODE
 
     public void inPower(double power) {
@@ -688,65 +688,65 @@ public class SSGlide {
         return autoState;
     }
 
-    public void updateAuto() {
-        switch(autoState) {
-            case LIFT:
-                if(isLiftAtTarget() && currLiftLevel < 10) {
-                    setGantry(GANTRY_EXTEND);
-                    setAuto(Auto.IDLE);
-                }
-                // if(currLiftLevel == 1) {
-                //     if()
-                // }
-                break;
-            case HOME:
-                // if (isGrabReady()) grabBlock();
-                if(lift.getCurrentPosition() < LIFT_EXTEND_POS) {
-                    setLiftPosition(liftLevels[2]);
-                }
-                // else if(moved 6 in) {
-                // setLiftPosition(liftLevels[2]);
-                //
-                // }
-                else {
-                    setGantry(GANTRY_RETRACT);
-
-                    if (isGantryIdle() || liftPower != 0) {
-                        setLiftLevel(0);
-                        setAuto(Auto.IDLE);
-                        setGrab(GRAB_POS);
-                    }
-                    else if(getDist() > 8000) {
-                        setLiftPosition(liftLevels[2]);
-                        setGrab(GRAB_POS);
-                    }
-                }
-                // if (gantryPower < 1) {
-                //     setLiftLevel(0);
-                //     setAuto(Auto.IDLE);
-                // }
-                // else if(gantryPower < 1.5) {
-                //     setLiftLevel(2);
-                // }
-                break;
-            case GRAB:
-                // if(grabPower < 1) {
-                //     setAuto(Auto.IDLE);
-                //     grabbed = true;
-                // }
-                break;
-            case SCORE:
-                // if(lift.getTargetPower() == 0) {
-                //     //setGrab(-2);
-                // }
-                break;
-            case IDLE:
-                // if(manualLift && liftPower == 0) {
-                // setLiftPosition(getLiftPosition());
-                // }
-                break;
-        }
-    }
+//    public void updateAuto() {
+//        switch(autoState) {
+//            case LIFT:
+//                if(isLiftAtTarget() && currLiftLevel < 10) {
+//                    setGantry(GANTRY_EXTEND);
+//                    setAuto(Auto.IDLE);
+//                }
+//                // if(currLiftLevel == 1) {
+//                //     if()
+//                // }
+//                break;
+//            case HOME:
+//                // if (isGrabReady()) grabBlock();
+//                if(lift.getCurrentPosition() < LIFT_EXTEND_POS) {
+//                    setLiftPosition(liftLevels[2]);
+//                }
+//                // else if(moved 6 in) {
+//                // setLiftPosition(liftLevels[2]);
+//                //
+//                // }
+//                else {
+//                    setGantry(GANTRY_RETRACT);
+//
+//                    if (isGantryIdle() || liftPower != 0) {
+//                        setLiftLevel(0);
+//                        setAuto(Auto.IDLE);
+//                        setGrab(GRAB_POS);
+//                    }
+//                    else if(getDist() > 8000) {
+//                        setLiftPosition(liftLevels[2]);
+//                        setGrab(GRAB_POS);
+//                    }
+//                }
+//                // if (gantryPower < 1) {
+//                //     setLiftLevel(0);
+//                //     setAuto(Auto.IDLE);
+//                // }
+//                // else if(gantryPower < 1.5) {
+//                //     setLiftLevel(2);
+//                // }
+//                break;
+//            case GRAB:
+//                // if(grabPower < 1) {
+//                //     setAuto(Auto.IDLE);
+//                //     grabbed = true;
+//                // }
+//                break;
+//            case SCORE:
+//                // if(lift.getTargetPower() == 0) {
+//                //     //setGrab(-2);
+//                // }
+//                break;
+//            case IDLE:
+//                // if(manualLift && liftPower == 0) {
+//                // setLiftPosition(getLiftPosition());
+//                // }
+//                break;
+//        }
+//    }
 
     public void cancel() {
         setAuto(Auto.IDLE);
@@ -754,7 +754,7 @@ public class SSGlide {
 
     public void update() {
         // updatePosition();
-        updateAuto();
+//        updateAuto();
         stoneUpdate();
         inUpdate();
         liftUpdate();
