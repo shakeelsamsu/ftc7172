@@ -40,6 +40,8 @@ public class SSGlideP {
     private FtcDashboard dashboard;
     private NanoClock clock;
 
+    double relativeTurnAngle;
+
     public SSGlideP() {
         movement_x = 0;
         movement_y = 0;
@@ -69,7 +71,7 @@ public class SSGlideP {
         lb.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         rb.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         localizer = new StandardTrackingWheelLocalizer(hardwareMap);
-        localizer.setPoseEstimate(new Pose2d(0, 0, 0));
+        localizer.setPoseEstimate(new Pose2d(0, 0, Math.toRadians(0)));
     }
 
     /**
@@ -108,7 +110,7 @@ public class SSGlideP {
         movementXPower *= movementSpeed;
         movementYPower *= movementSpeed;
 
-        double relativeTurnAngle = relativeAngleToPoint - Math.toRadians(180) + preferredAngle;
+        relativeTurnAngle = relativeAngleToPoint - Math.toRadians(180) + preferredAngle;
         double movementHeadingPower = Range.clip(relativeTurnAngle / Math.toRadians(30), -1, 1) * turnSpeed;
 
         // Prevent heading overshoot when near target
@@ -120,17 +122,26 @@ public class SSGlideP {
         movement_y = movementYPower;
         movement_turn = movementHeadingPower;
         rmove(movementXPower, movementYPower, movementHeadingPower);
+
+//        TelemetryPacket packet = new TelemetryPacket();
+//
+//        packet.put("world heading", worldHeading);
+//        packet.put("movement_turn", movement_turn);
+//        packet.put("relative turn angle", relativeTurnAngle);
+//        packet.put("relative turn angle / 30r", relativeTurnAngle / Math.toRadians(30));
+//
+//        dashboard.sendTelemetryPacket(packet);
     }
 
     public void displayTelemetry(Telemetry t) {
         t.addData("worldX", localizer.getPoseEstimate().getX());
         t.addData("worldY", localizer.getPoseEstimate().getY());
         t.addData("worldHeading", localizer.getPoseEstimate().getHeading());
-        t.addData("currFollowIndex", closestToLine.index);
+//        t.addData("currFollowIndex", closestToLine.index);
 //        t.addData("currFollow x", closestToLine.x);
 //        t.addData("currFollow y", closestToLine.y);
-        t.addData("follow x", followMe.x);
-        t.addData("follow y", followMe.y);
+//        t.addData("follow x", followMe.x);
+//        t.addData("follow y", followMe.y);
     }
 
     public SSCurvePoint getFollowPointPath(ArrayList<SSCurvePoint> pathPoints, SSPoint robotLocation, double followRadius) {
@@ -179,7 +190,7 @@ public class SSGlideP {
         fieldOverlay.setFill("#3F51B5");
         fieldOverlay.fillRect(worldX, worldY, 7, 7);
 
-        for(int i = 0; i < allPoints.size() - 1; i++) {
+        for(int i = 0; i < allPoints.size(); i++) {
 //            ComputerDebugging.sendLine(new FloatPoint(allPoints.get(i).x, allPoints.get(i).y),
 //                new FloatPoint(allPoints.get(i + 1).x, allPoints.get(i + 1).y));
             // Insert Debugging Code Here eventually
@@ -195,6 +206,10 @@ public class SSGlideP {
         // TODO: Figure out how to smooth out the followDist and stuff
 //        SSCurvePoint followMe = getFollowPointPath(allPoints, new SSPoint(worldX, worldY), allPoints.get(currFollowIndex + 1).followDist);
         goToPosition(followMe.x, followMe.y, followMe.moveSpeed, followAngle, followMe.turnSpeed);
+
+        packet.put("movement_turn", movement_turn);
+        packet.put("relative turn angle", relativeTurnAngle);
+        packet.put("relative turn angle / 30r", relativeTurnAngle / Math.toRadians(30));
 
         dashboard.sendTelemetryPacket(packet);
     }
