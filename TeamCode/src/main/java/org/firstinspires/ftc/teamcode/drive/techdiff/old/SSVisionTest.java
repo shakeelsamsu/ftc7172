@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode.drive.techdiff;
+package org.firstinspires.ftc.teamcode.drive.techdiff.old;
 
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.Disabled;
@@ -22,7 +22,7 @@ import java.util.List;
 
 @Disabled
 @Autonomous
-public class SSVision extends LinearOpMode {
+public class SSVisionTest extends LinearOpMode {
 
     private static final String TFOD_MODEL_ASSET = "Skystone.tflite";
     private static final String LABEL_FIRST_ELEMENT = "Stone";
@@ -52,6 +52,11 @@ public class SSVision extends LinearOpMode {
     boolean lastY = false;
     boolean lastX = false;
 
+    Mode mode = Mode.AVG;
+    boolean selectRow = false;
+    int row = 300;
+    int manualPosition = 1;
+
     @Override
     public void runOpMode() {
         telemetry.update();
@@ -77,73 +82,13 @@ public class SSVision extends LinearOpMode {
                 "\nDPAD_DOWN: row - 5" +
                 "\nDPAD_LEFT and DPAD_RIGHT: MANUAL positions");
         // waitForStart();
-        Mode mode = Mode.AVG;
-        boolean selectRow = false;
-        int row = 300;
-        int manualPosition = 1;
         while (!opModeIsActive()) {
-            int position = 0;
-            boolean a = gamepad1.a;
-            if (a && !lastA) {
-                mode = Mode.AVG;
-                selectRow = true;
-            }
-            lastA = a;
-            boolean b = gamepad1.b;
-            if (b && !lastB) {
-                mode = Mode.AVG;
-                selectRow = false;
-            }
-            lastB = b;
-            boolean y = gamepad1.y;
-            if (y && !lastY) {
-                mode = Mode.TF;
-                selectRow = false;
-            }
-            lastY = y;
-            boolean x = gamepad1.x;
-            if (x && !lastX) {
-                mode = Mode.MANUAL;
-                selectRow = false;
-            }
-            lastX = x;
-            if (selectRow) {
-                boolean DUp = gamepad1.dpad_up;
-                if (DUp && !lastDUp) {
-                    row += 5;
-                }
-                lastDUp = DUp;
-                boolean DDown = gamepad1.dpad_down;
-                if (DDown && !lastDDown) {
-                    row -= 5;
-                }
-                lastDDown = DDown;
 
-            }
-            switch (mode) {
-                case AVG:
-                    position = getSkyStonePosAvg(row, selectRow);
-                    break;
-                case TF:
-                    position = getSkyStonePosTF();
-                    break;
-                case MANUAL:
-                    boolean right = gamepad1.dpad_up;
-                    if (right && !lastDRight)
-                        manualPosition = Range.clip(manualPosition + 1, 1, 6);
-                    lastDRight = right;
-                    boolean left = gamepad1.dpad_left;
-                    if (left && !lastDLeft)
-                        manualPosition = Range.clip(manualPosition - 1, 1, 6);
-                    lastDLeft = left;
-                    position = manualPosition;
-                    break;
-            }
             telemetry.addData("mode", (mode == Mode.TF ? "TF"
                     : (mode == Mode.AVG ? "AVG" : "MANUAL")));
             telemetry.addData("selectRow?", selectRow);
             telemetry.addData("selected row", row);
-            telemetry.addData("position", position);
+            telemetry.addData("position", getPosition());
             telemetry.update();
         }
 
@@ -281,6 +226,67 @@ public class SSVision extends LinearOpMode {
         if (min == avg2)
             return 2;
         return 3;
+    }
+
+    public int getPosition() {
+        int position = 0;
+        boolean a = gamepad1.a;
+        if (a && !lastA) {
+            mode = Mode.AVG;
+            selectRow = true;
+        }
+        lastA = a;
+        boolean b = gamepad1.b;
+        if (b && !lastB) {
+            mode = Mode.AVG;
+            selectRow = false;
+        }
+        lastB = b;
+        boolean y = gamepad1.y;
+        if (y && !lastY) {
+            mode = Mode.TF;
+            selectRow = false;
+        }
+        lastY = y;
+        boolean x = gamepad1.x;
+        if (x && !lastX) {
+            mode = Mode.MANUAL;
+            selectRow = false;
+        }
+        lastX = x;
+        if (selectRow) {
+            boolean DUp = gamepad1.dpad_up;
+            if (DUp && !lastDUp) {
+                row += 5;
+            }
+            lastDUp = DUp;
+            boolean DDown = gamepad1.dpad_down;
+            if (DDown && !lastDDown) {
+                row -= 5;
+            }
+            lastDDown = DDown;
+
+        }
+        switch (mode) {
+            case AVG:
+                position = getSkyStonePosAvg(row, selectRow);
+                break;
+            case TF:
+                position = getSkyStonePosTF();
+                break;
+            case MANUAL:
+                boolean right = gamepad1.dpad_right;
+                if (right && !lastDRight)
+                    manualPosition = Range.clip(manualPosition + 1, 1, 6);
+                lastDRight = right;
+                boolean left = gamepad1.dpad_left;
+                if (left && !lastDLeft)
+                    manualPosition = Range.clip(manualPosition - 1, 1, 6);
+                lastDLeft = left;
+                position = manualPosition;
+                break;
+        }
+        return position;
     }
 
     private void displayStoneInfo(Telemetry telemetry) {

@@ -3,14 +3,12 @@ package org.firstinspires.ftc.teamcode.drive.techdiff.ss.pursuit;
 import com.acmerobotics.roadrunner.geometry.Pose2d;
 import com.acmerobotics.roadrunner.localization.ThreeTrackingWheelLocalizer;
 import com.acmerobotics.roadrunner.util.NanoClock;
-import com.company.FloatPoint;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.util.Range;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.teamcode.drive.localizer.StandardTrackingWheelLocalizer;
-import org.firstinspires.ftc.teamcode.drive.techdiff.ss.pursuit.gfdebug.ComputerDebugging;
 
 import java.util.ArrayList;
 
@@ -144,6 +142,76 @@ public class SSGlideP {
 //        dashboard.sendTelemetryPacket(packet);
     }
 
+    public void goToPosition2(double x, double y, double movementSpeed, double preferredAngle, double turnSpeed) {
+        localizer.update();
+
+        double worldX = localizer.getPoseEstimate().getX();
+        double worldY = localizer.getPoseEstimate().getY();
+        double worldHeading = localizer.getPoseEstimate().getHeading();
+
+        double distToTarget = Math.hypot(x - worldX, y - worldY);
+
+        double absoluteAngleToTarget = Math.atan2(y - worldY, x - worldX);
+        double relativeAngleToPoint = AngleWrap(absoluteAngleToTarget - (worldHeading - Math.toRadians(90)));
+
+        double relativeXToPoint = Math.cos(relativeAngleToPoint) * distToTarget;
+        double relativeYToPoint = Math.sin(relativeAngleToPoint) * distToTarget;
+
+        // Normalize the movement vectors
+        double movementXPower = relativeXToPoint / (Math.abs(relativeXToPoint) + Math.abs(relativeYToPoint));
+        double movementYPower = relativeYToPoint / (Math.abs(relativeXToPoint) + Math.abs(relativeYToPoint));
+
+        movementXPower *= movementSpeed;
+        movementYPower *= movementSpeed;
+
+//        relativeTurnAngle = relativeAngleToPoint - Math.toRadians(180) + preferredAngle;
+//        double movementHeadingPower = Range.clip(relativeTurnAngle / Math.toRadians(30), -1, 1) * turnSpeed;
+
+        // Prevent heading overshoot when near target
+//        if (distToTarget < 3) {
+//            movementHeadingPower = 0;
+//        }
+
+        movement_x = movementXPower;
+        movement_y = movementYPower;
+//        movement_turn = movementHeadingPower;
+
+        // TODO: add pointAngle optimization and tinker with different smoothing effects near the end of a line
+        // new turning code
+        double actualRelativePointAngle = (preferredAngle - Math.toRadians(90));
+        double angleToPointRaw = Math.atan2(y - worldY, x - worldX);
+        double absolutePointAngle = angleToPointRaw + actualRelativePointAngle;
+
+        double relativePointAngle = AngleWrap(absolutePointAngle - worldHeading);
+
+//        double decelrationDistance = Math.toRadians(40);
+
+        double movementHeadingPower = turnSpeed;
+
+        if (distToTarget < 3) {
+            movementHeadingPower = 0;
+        }
+
+        movementXPower *= Math.abs(relativeXToPoint) / 12;
+        movementYPower *= Math.abs(relativeYToPoint) / 12;
+
+        movementXPower = Range.clip(movementXPower, -movementSpeed, movementSpeed);
+        movementYPower = Range.clip(movementYPower, -movementSpeed, movementSpeed);
+
+        movementHeadingPower *= Range.clip(Math.abs(relativePointAngle)/Math.toRadians(30), 0, 1);
+
+        rmove(movementXPower, movementYPower, movementHeadingPower);
+
+        TelemetryPacket packet = new TelemetryPacket();
+
+        packet.put("world heading", worldHeading);
+        packet.put("movement_turn", movement_turn);
+        packet.put("relative point angle", relativePointAngle);
+        packet.put("relative point angle / 2r", relativePointAngle / Math.toRadians(2));
+
+        dashboard.sendTelemetryPacket(packet);
+    }
+
     public void displayTelemetry(Telemetry t) {
         t.addData("worldX", localizer.getPoseEstimate().getX());
         t.addData("worldY", localizer.getPoseEstimate().getY());
@@ -248,13 +316,20 @@ public class SSGlideP {
         }
         
         // TODO: Figure out how to smooth out the followDist and stuff
-        goToPosition(followMe.x, followMe.y, followMe.moveSpeed, followAngle, followMe.turnSpeed);
+        goToPosition2(followMe.x, followMe.y, followMe.moveSpeed, followAngle, followMe.turnSpeed);
 
-        packet.put("movement_turn", movement_turn);
-        packet.put("relative turn angle", relativeTurnAngle);
-        packet.put("relative turn angle / 30r", relativeTurnAngle / Math.toRadians(30));
 
-        dashboard.sendTelemetryPacket(packet);
+        // Testing
+        double currFollowAngle = Math.atan2(pointToMe.y - worldY, pointToMe.x - worldX);
+        currFollowAngle += AngleWrap(followAngle - Math.toRadians(90));
+
+        double angleDelta = pointAngle(currFollowAngle, allPoints.get(currFollowIndex).turnSpeed, Math.toRadians(45));
+    }
+
+    // The relative point angle
+    public double pointAngle(double followAngle, double turnSpeed, double decelerationRadians) {
+        double worldHeading = localizer.getPoseEstimate().getHeading();
+        return AngleWrap(followAngle - worldHeading);
     }
 
     public IndexedPoint findIndex(ArrayList<SSCurvePoint> allPoints, double x, double y) {

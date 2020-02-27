@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode.drive.techdiff;
+package org.firstinspires.ftc.teamcode.drive.techdiff.old;
 
 import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.config.Config;
@@ -12,7 +12,6 @@ import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.Range;
@@ -30,6 +29,7 @@ import org.firstinspires.ftc.robotcore.external.tfod.Recognition;
 import org.firstinspires.ftc.robotcore.external.tfod.TFObjectDetector;
 import org.firstinspires.ftc.teamcode.drive.mecanum.SampleMecanumDriveBase;
 import org.firstinspires.ftc.teamcode.drive.mecanum.SampleMecanumDriveREVOptimized;
+import org.firstinspires.ftc.teamcode.drive.techdiff.GlideConstants;
 
 import java.nio.ByteBuffer;
 import java.util.HashMap;
@@ -38,7 +38,7 @@ import java.util.Map;
 @Disabled
 @Config
 @Autonomous
-public class AutoRedLamar extends LinearOpMode {
+public class AutoRedStackTesting extends LinearOpMode {
     ElapsedTime timer = new ElapsedTime();
     public static double stone1 = 0;
     public static double stone2 = 0;
@@ -82,6 +82,7 @@ public class AutoRedLamar extends LinearOpMode {
     private int THIRD_STONE_OFFSET = -3;
 
     private static double ALLEY_Y = -39;
+    private static double STONE_OFFSET = 6.5;
 
     ConstantInterpolator constInterp = new ConstantInterpolator(0);
     ConstantInterpolator constInterp180 = new ConstantInterpolator(Math.toRadians(-180));
@@ -91,7 +92,6 @@ public class AutoRedLamar extends LinearOpMode {
         TO_FOUNDATION,
         TO_QUARRY,
         TO_FINISH,
-        GRAB_FOUNDATION,
         DEFAULT
     }
 
@@ -103,9 +103,8 @@ public class AutoRedLamar extends LinearOpMode {
     private ElapsedTime clock = new ElapsedTime();
     // good: 0 1 5
 
-    public static final double[] STONES_X = {-29.5, -37.5, -45.5, -44, -52, -64};
-    public static final double[] STONES_INTAKE_X = {-31.5, -31.5, -45.5, -44, -52, -64};
-    public static final int[][] STONE_OPTIONS = {{5, 0, 1}, {5, 2, 0, 1}, {4, 1, 0, 2}, {3, 0, 1, 2}};
+    public static final double[] STONES_X = {-31.5, -37.5, -44.5, -44, -52, -64};
+    public static final int[][] STONE_OPTIONS = {{5, 0, 1, 2}, {5, 2, 0, 1, 3}, {4, 1, 0, 2, 3}, {3, 0, 1, 2, 4}};
 
     private Servo rarm;
     private Servo rrotate;
@@ -116,7 +115,6 @@ public class AutoRedLamar extends LinearOpMode {
     private Servo foundation;
 
     private DcMotor lift1, lift2;
-    private DcMotor rin, lin;
 
     private SampleMecanumDriveBase drive;
     private State state;
@@ -138,8 +136,6 @@ public class AutoRedLamar extends LinearOpMode {
     private boolean foundationReached = false;
     private double foundationX = 0;
     private final double DEPOSIT_OFFSET = -5;
-
-    private boolean intaking = false;
 
     private VuforiaLocalizer vuforia;
     private TFObjectDetector tfod;
@@ -184,10 +180,6 @@ public class AutoRedLamar extends LinearOpMode {
         lift1.setDirection(DcMotor.Direction.REVERSE);
         lift1.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         lift2.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        lin = hardwareMap.get(DcMotorEx.class, "lin");
-        rin = hardwareMap.get(DcMotorEx.class, "rin");
-        lin.setDirection(DcMotor.Direction.FORWARD);
-        rin.setDirection(DcMotor.Direction.FORWARD);
         int stonePos = 5;
 
         // Vision
@@ -226,8 +218,8 @@ public class AutoRedLamar extends LinearOpMode {
         delay(.25);
         drive.setPoseEstimate(new Pose2d(-38, -63, 0));
         LsetRotate(L_ROTATE_SIDE);
-        LsetClaw(L_CLAW_STOW);
-        LsetArm(L_ARM_STOW);
+        LsetClaw(L_CLAW_RELEASE);
+        LsetArm(L_ARM_OVER);
         RsetRotate(R_ROTATE_SIDE);
         RsetArm(R_ARM_STOW);
         RsetClaw(R_CLAW_STOW);
@@ -242,12 +234,15 @@ public class AutoRedLamar extends LinearOpMode {
         );
         followTrajectoryArmSync(
                 drive.trajectoryBuilderFast()
-                        .strafeTo(new Vector2d(STONES_X[STONE_OPTIONS[stonePos][0]], -38))
+                        .strafeTo(new Vector2d(STONES_X[STONE_OPTIONS[stonePos][0]], ALLEY_Y+STONE_OFFSET))
                         .build()
                 , State.DEFAULT
         );
         stone1 = drive.getPoseEstimate().getY();
-        strafeAndGrab(drive,-stone1-33);
+        if(Math.abs(stone1 - 31) > 3)
+            strafeAndGrab(drive,-stone1-32);
+        else
+            grab();
         drive.update();
         logString += "First pickup " + clock.seconds() + " ";
         logger.put("First pickup", String.format("%.3f", clock.seconds()));
@@ -256,7 +251,7 @@ public class AutoRedLamar extends LinearOpMode {
         followTrajectoryArmSync(
                 drive.trajectoryBuilder()
                         .lineTo(new Vector2d(10, -38))
-                        .lineTo(new Vector2d(47, -40), linInterp)
+                        .lineTo(new Vector2d(50, -40), linInterp)
                         .build()
                 , State.TO_FOUNDATION);
         drive.update();
@@ -266,24 +261,23 @@ public class AutoRedLamar extends LinearOpMode {
                 drive.trajectoryBuilderSlow()
                         .back(Math.abs(drive.getPoseEstimate().getY() + 28))
                         .build()
-                , State.GRAB_FOUNDATION
+                , State.DEFAULT
         );
         setFoundation(FOUNDATION_GRAB);
         followTrajectoryArmSync(
-                drive.trajectoryBuilderFaster()
-                        .splineTo(new Pose2d(24, -46, Math.toRadians(-180)))
+                drive.trajectoryBuilder()
+                        .splineTo(new Pose2d(24, -47, Math.toRadians(-180)))
                         .build()
                 , State.DEFAULT
         );
         followTrajectoryArmSync(
                 drive.trajectoryBuilder()
-                .splineTo(new Pose2d(24, -46, Math.toRadians((-180))))
-                .build()
+                        .splineTo(new Pose2d(24, -47, Math.toRadians((-180))))
+                        .build()
                 , State.DEFAULT
         );
         deposit();
-        delay(0.4);
-
+        delay(0.2);
         LsetClaw(L_CLAW_RELEASE);
         setFoundation(FOUNDATION_RELEASE);
         foundationX = drive.getPoseEstimate().getX();
@@ -302,13 +296,16 @@ public class AutoRedLamar extends LinearOpMode {
         // Go back and Second Pick-Up
         followTrajectoryArmSync(
                 drive.trajectoryBuilder()
-                        .splineTo(new Pose2d(12, ALLEY_Y, Math.toRadians(-180)), constInterp180)
-                        .splineTo(new Pose2d(STONES_X[STONE_OPTIONS[stonePos][1]],ALLEY_Y,Math.toRadians(-180)), constInterp180)
+                        .lineTo(new Vector2d(12, ALLEY_Y), constInterp180)
+                        .splineTo(new Pose2d(STONES_X[STONE_OPTIONS[stonePos][1]],ALLEY_Y+STONE_OFFSET,Math.toRadians(-180)), constInterp180)
                         .build()
                 , State.TO_QUARRY
         );
         stone2 = drive.getPoseEstimate().getY();
-        strafeAndGrab(drive, -stone2 - 32.5);
+        if(Math.abs(-stone2 - 32) > 3)
+            strafeAndGrab(drive,-stone2-32);
+        else
+            grab();
         drive.update();
         logger.put("Second pickup", String.format("%.3f", clock.seconds()));
 
@@ -317,7 +314,7 @@ public class AutoRedLamar extends LinearOpMode {
                 drive.trajectoryBuilder()
                         .reverse()
                         .lineTo(new Vector2d(-10, ALLEY_Y), constInterp180)
-                        .lineTo(new Vector2d(foundationX+1, ALLEY_Y), constInterp180)
+                        .lineTo(new Vector2d(foundationX+1, ALLEY_Y-4),constInterp180)
                         .build()
                 , State.TO_FOUNDATION
         );
@@ -331,12 +328,15 @@ public class AutoRedLamar extends LinearOpMode {
         followTrajectoryArmSync(
                 drive.trajectoryBuilder()
                         .lineTo(new Vector2d(12,ALLEY_Y), constInterp180)
-                        .lineTo(new Vector2d(STONES_X[STONE_OPTIONS[stonePos][2]],ALLEY_Y),constInterp180)
+                        .splineTo(new Pose2d(STONES_X[STONE_OPTIONS[stonePos][2]],ALLEY_Y+STONE_OFFSET,Math.toRadians(-180)))
                         .build()
                 , State.TO_QUARRY);
         drive.update();
         stone3 = drive.getPoseEstimate().getY();
-        strafeAndGrab(drive, -stone3 - 32);
+        if(Math.abs(-stone3 - 32) > 3)
+            strafeAndGrab(drive,-stone3-32);
+        else
+            grab();
         logger.put("Third pickup", String.format("%.3f", clock.seconds()));
 
 
@@ -345,7 +345,7 @@ public class AutoRedLamar extends LinearOpMode {
                 drive.trajectoryBuilder()
                         .reverse()
                         .lineTo(new Vector2d(-10, ALLEY_Y), constInterp180)
-                        .lineTo(new Vector2d(foundationX-3, ALLEY_Y), constInterp180)
+                        .lineTo(new Vector2d(foundationX-3, ALLEY_Y-8), constInterp180)
                         .build()
                 , State.TO_FOUNDATION);
         drive.update();
@@ -359,18 +359,22 @@ public class AutoRedLamar extends LinearOpMode {
         followTrajectoryArmSync(
                 drive.trajectoryBuilder()
                         .lineTo(new Vector2d(12,ALLEY_Y), constInterp180)
-                        .lineTo(new Vector2d(STONES_X[STONE_OPTIONS[stonePos][3]],ALLEY_Y),constInterp180)
+                        .splineTo(new Pose2d(STONES_X[STONE_OPTIONS[stonePos][3]],ALLEY_Y+STONE_OFFSET,Math.toRadians(-180)))
                         .build()
                 , State.TO_QUARRY);
         drive.update();
-        strafeAndGrab(drive, -drive.getPoseEstimate().getY() - 31.5);
+        double stone4 = drive.getPoseEstimate().getY();
+        if(Math.abs(-stone4 - 32) > 3)
+            strafeAndGrab(drive,-stone4-32);
+        else
+            grab();
         logger.put("Fourth pickup", String.format("%.3f", clock.seconds()));
 
         // GO TO FOUNDATION 4
         followTrajectoryArmSync(
                 drive.trajectoryBuilder()
                         .reverse()
-                        .splineTo(new Pose2d(-10, ALLEY_Y, Math.toRadians(-180)))
+                        .lineTo(new Vector2d(-10, ALLEY_Y), constInterp180)
                         .splineTo(new Pose2d(30, ALLEY_Y-10, Math.toRadians(-180)))
                         .build()
                 , State.TO_FOUNDATION);
@@ -484,18 +488,18 @@ public class AutoRedLamar extends LinearOpMode {
         if (CLAW_SIDE == clawSide.LEFT) {
             LsetArm(L_ARM_OVER);
             LsetClaw(L_CLAW_RELEASE);
-            delay(0.1);
+            delay(0.2);
             LsetArm(L_ARM_GRAB);
             LsetClaw(L_CLAW_GRAB);
-            delay(0.3);
+            delay(0.4);
             LsetArm(L_ARM_STOW);
         } else {
             RsetArm(R_ARM_OVER);
             RsetClaw(R_CLAW_RELEASE);
-            delay(0.1);
+            delay(0.2);
             RsetArm(R_ARM_GRAB);
             RsetClaw(R_CLAW_GRAB);
-            delay(0.3);
+            delay(0.4);
             RsetArm(R_ARM_STOW);
         }
     }
@@ -554,8 +558,7 @@ public class AutoRedLamar extends LinearOpMode {
         }
     }
 
-    // Maybe we should test using a TrajectoryBuilder from a pre-built trajectory
-    // (look at the last constructor of a TrajectoryBuilder)
+    // TODO: make state an argument, add a default case
     public void followTrajectoryArmSync(Trajectory t, State s) {
         drive.followTrajectory(t);
         while (!Thread.currentThread().isInterrupted() && drive.isBusy()) {
@@ -597,11 +600,6 @@ public class AutoRedLamar extends LinearOpMode {
                     delay(0.3);
                     RsetClaw(R_CLAW_STOW);
                     RsetArm(R_ARM_STOW);
-                    break;
-                case GRAB_FOUNDATION:
-                    if(drive.getPoseEstimate().getY() > -30) {
-                        setFoundation(FOUNDATION_GRAB);
-                    }
                     break;
                 case DEFAULT:
                     break;
