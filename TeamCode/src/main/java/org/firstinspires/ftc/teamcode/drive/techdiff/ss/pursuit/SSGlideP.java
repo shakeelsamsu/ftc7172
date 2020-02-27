@@ -55,6 +55,7 @@ public class SSGlideP {
 
     /**
      * Initializes Glide's hardware
+     *
      * @param hardwareMap the HardwareMap object
      */
     public void init(HardwareMap hardwareMap) {
@@ -76,15 +77,16 @@ public class SSGlideP {
 
     /**
      * Moves the robot
-     * @param xPower the x-component of the power
-     * @param yPower the y-component of the power
+     *
+     * @param xPower       the x-component of the power
+     * @param yPower       the y-component of the power
      * @param headingPower the heading-component of the power
      */
     public void rmove(double xPower, double yPower, double headingPower) {
-        lf.setPower(yPower+xPower-headingPower);
-        rf.setPower(yPower-xPower+headingPower);
-        lb.setPower(yPower-xPower-headingPower);
-        rb.setPower(yPower+xPower+headingPower);
+        lf.setPower(yPower + xPower - headingPower);
+        rf.setPower(yPower - xPower + headingPower);
+        lb.setPower(yPower - xPower - headingPower);
+        rb.setPower(yPower + xPower + headingPower);
     }
 
 
@@ -114,13 +116,22 @@ public class SSGlideP {
         double movementHeadingPower = Range.clip(relativeTurnAngle / Math.toRadians(30), -1, 1) * turnSpeed;
 
         // Prevent heading overshoot when near target
-        if(distToTarget < 3) {
+        if (distToTarget < 3) {
             movementHeadingPower = 0;
         }
 
         movement_x = movementXPower;
         movement_y = movementYPower;
         movement_turn = movementHeadingPower;
+
+        // TODO: add pointAngle optimization and tinker with different smoothing effects near the end of a line
+
+        movementXPower *= Math.abs(relativeXToPoint) / 12;
+        movementYPower *= Math.abs(relativeYToPoint) / 12;
+
+        movementXPower = Range.clip(movementXPower, -movementSpeed, movementSpeed);
+        movementYPower = Range.clip(movementYPower, -movementSpeed, movementSpeed);
+
         rmove(movementXPower, movementYPower, movementHeadingPower);
 
 //        TelemetryPacket packet = new TelemetryPacket();
@@ -149,27 +160,24 @@ public class SSGlideP {
         double worldY = localizer.getPoseEstimate().getY();
         double worldHeading = localizer.getPoseEstimate().getHeading();
 
-        closestToLine = findIndex(pathPoints, worldX, worldY);
-        currFollowIndex = closestToLine.index;
-
-
 //        followMe = new SSCurvePoint(pathPoints.get(currFollowIndex + 1));
 //        followMe.setPoint(new SSPoint(closestToLine.x, closestToLine.y));
 
-        followMe = new SSCurvePoint(pathPoints.get(0));
+        // TODO: check this
+        SSCurvePoint followMe = new SSCurvePoint(pathPoints.get(0));
 
-        for(int i = 0; i < pathPoints.size() - 1; i++) {
+        for (int i = 0; i < pathPoints.size() - 1; i++) {
             SSCurvePoint startLine = pathPoints.get(i);
             SSCurvePoint endLine = pathPoints.get(i + 1);
 
             ArrayList<SSPoint> intersections = lineCircleIntersection(robotLocation, followRadius, startLine.toPoint(), endLine.toPoint());
 
             double closestAngle = Integer.MAX_VALUE;
-            for(SSPoint thisIntersection : intersections) {
+            for (SSPoint thisIntersection : intersections) {
                 double angle = Math.atan2(thisIntersection.y - worldY, thisIntersection.x - worldX);
                 double deltaAngle = Math.abs(AngleWrap(angle - worldHeading));
 
-                if(deltaAngle < closestAngle) {
+                if (deltaAngle < closestAngle) {
                     closestAngle = deltaAngle;
                     followMe.setPoint(thisIntersection);
                 }
@@ -187,24 +195,59 @@ public class SSGlideP {
         TelemetryPacket packet = new TelemetryPacket();
         Canvas fieldOverlay = packet.fieldOverlay();
 
+        closestToLine = findIndex(allPoints, worldX, worldY);
+        currFollowIndex = closestToLine.index + 1;
+
+//        followMe = getFollowPointPath(allPoints, new SSPoint(worldX, worldY), allPoints.get(0).followDist);
+        followMe = getFollowPointPath(allPoints, new SSPoint(worldX, worldY), allPoints.get(currFollowIndex).followDist);
+
+        ArrayList<SSCurvePoint> pathExtended = (ArrayList<SSCurvePoint>) allPoints.clone();
+
+        int numPoints = allPoints.size();
+        pathExtended.set(pathExtended.size() - 1, extendLine(allPoints.get(numPoints - 1), allPoints.get(numPoints - 2), allPoints.get(numPoints - 1).pointLength));
+
+        // Robot Position
         fieldOverlay.setFill("#3F51B5");
         fieldOverlay.fillRect(worldX, worldY, 7, 7);
 
-        for(int i = 0; i < allPoints.size(); i++) {
+        SSCurvePoint pointToMe = getFollowPointPath(pathExtended, new SSPoint(worldX, worldY), allPoints.get(currFollowIndex).followDist);
+
+        for (int i = 0; i < allPoints.size(); i++) {
 //            ComputerDebugging.sendLine(new FloatPoint(allPoints.get(i).x, allPoints.get(i).y),
 //                new FloatPoint(allPoints.get(i + 1).x, allPoints.get(i + 1).y));
-            // Insert Debugging Code Here eventually
+
+            // Path Lines
+            fieldOverlay.setStroke("#FCDF03");
+            if (i < allPoints.size() - 1)
+                fieldOverlay.strokeLine(allPoints.get(i).x, allPoints.get(i).y, allPoints.get(i + 1).x, allPoints.get(i + 1).y);
+
+            // Path Points
             fieldOverlay.setFill("#FF0000");
             fieldOverlay.fillCircle(allPoints.get(i).x, allPoints.get(i).y, 2);
         }
 
+        // Following Point
 //        ComputerDebugging.sendKeyPoint(new FloatPoint(followMe.x, followMe.y));
+        fieldOverlay.setFill("#2CFC03");
+        fieldOverlay.fillCircle(followMe.x, followMe.y, 1);
 
-        SSCurvePoint followMe = getFollowPointPath(allPoints, new SSPoint(worldX, worldY), allPoints.get(0).followDist);
+        // Pointing point
+//        fieldOverlay.setFill("#03FC2C");
+//        fieldOverlay.fillCircle(pointToMe.x, pointToMe.y, 1);
 
-        // Only uses the first follow distance
+        double distToFinalEnd = Math.hypot(
+                closestToLine.x-allPoints.get(allPoints.size()-1).x,
+                closestToLine.y-allPoints.get(allPoints.size()-1).y);
+
+
+        if(distToFinalEnd <= followMe.followDist + 4 ||
+                Math.hypot(worldX-allPoints.get(allPoints.size()-1).x,
+                        worldY-allPoints.get(allPoints.size()-1).y) < followMe.followDist + 4){
+
+            followMe.setPoint(allPoints.get(allPoints.size()-1).toPoint());
+        }
+        
         // TODO: Figure out how to smooth out the followDist and stuff
-//        SSCurvePoint followMe = getFollowPointPath(allPoints, new SSPoint(worldX, worldY), allPoints.get(currFollowIndex + 1).followDist);
         goToPosition(followMe.x, followMe.y, followMe.moveSpeed, followAngle, followMe.turnSpeed);
 
         packet.put("movement_turn", movement_turn);
@@ -221,14 +264,14 @@ public class SSGlideP {
 
         SSPoint closestLine = new SSPoint();
 
-        for(int i = 0; i < allPoints.size() - 1; i++) {
+        for (int i = 0; i < allPoints.size() - 1; i++) {
             SSCurvePoint pointA = allPoints.get(i);
             SSCurvePoint pointB = allPoints.get(i + 1);
 
             SSPoint currClosestToLine = findClosestPointOnLine(pointA.x, pointA.y, pointB.x, pointB.y, x, y);
             double distanceToClosest = Math.hypot(x - currClosestToLine.x, y - currClosestToLine.y);
 
-            if(distanceToClosest < closestDist) {
+            if (distanceToClosest < closestDist) {
                 closestDist = distanceToClosest;
                 closestIndex = i;
                 closestLine = currClosestToLine;
@@ -239,21 +282,35 @@ public class SSGlideP {
     }
 
     public SSPoint findClosestPointOnLine(double lineX1, double lineY1, double lineX2, double lineY2, double x, double y) {
-        if(lineX1 == lineX2){
+        if (lineX1 == lineX2) {
             lineX1 = lineX2 + 0.01;
         }
-        if(lineY1 == lineY2){
+        if (lineY1 == lineY2) {
             lineY1 = lineY2 + 0.01;
         }
 
         // Calculate the slope of the line
-        double m1 = (lineY2 - lineY1)/(lineX2 - lineX1);
+        double m1 = (lineY2 - lineY1) / (lineX2 - lineX1);
         // Calculate the slope perpendicular to this line
-        double m2 = (lineX1 - lineX2)/(lineY2 - lineY1);
+        double m2 = (lineX1 - lineX2) / (lineY2 - lineY1);
 
-        double xClipedToLine = ((-m2 * x) + y + (m1 * lineX1) - lineY1)/(m1 - m2);
+        double xClipedToLine = ((-m2 * x) + y + (m1 * lineX1) - lineY1) / (m1 - m2);
         double yClipedToLine = (m1 * (xClipedToLine - lineX1)) + lineY1;
-        return new SSPoint(xClipedToLine,yClipedToLine);
+        return new SSPoint(xClipedToLine, yClipedToLine);
+    }
+
+    public SSCurvePoint extendLine(SSCurvePoint pointA, SSCurvePoint pointB, double additiveDistance) {
+
+        double lineAngle = Math.atan2(pointB.y - pointA.y, pointB.x - pointA.x);
+
+        double lineDistance = Math.hypot(pointB.y - pointA.y, pointB.x - pointA.x);
+
+        double extendedLineLength = lineDistance + additiveDistance;
+
+        SSCurvePoint extended = new SSCurvePoint(pointB);
+        extended.x = Math.cos(lineAngle) * extendedLineLength + pointA.x;
+        extended.y = Math.sin(lineAngle) * extendedLineLength + pointA.y;
+        return extended;
     }
 
     static class IndexedPoint {

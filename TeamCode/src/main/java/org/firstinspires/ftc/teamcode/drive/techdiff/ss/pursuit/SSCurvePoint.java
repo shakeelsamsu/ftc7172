@@ -12,7 +12,7 @@ public class SSCurvePoint {
     public double slowDownTurnRadians;
     public double slowDownTurnAmount;
 
-    public SSCurvePoint(double x, double y, double moveSpeed, double turnSpeed, double followDist, double slowDownTurnRadians, double slowDownTurnAmount) {
+    public SSCurvePoint(double x, double y, double moveSpeed, double turnSpeed, double followDist, double pointLength, double slowDownTurnRadians, double slowDownTurnAmount) {
         this.x = x;
         this.y = y;
         this.moveSpeed = moveSpeed;
