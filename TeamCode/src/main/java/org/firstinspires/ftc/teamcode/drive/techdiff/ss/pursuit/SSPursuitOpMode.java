@@ -12,6 +12,7 @@ public class SSPursuitOpMode extends OpMode {
     public void init() {
         glide = new SSGlideP();
         glide.init(hardwareMap);
+        // check pose estimate in SSGlideP.java
     }
 
     public void loop() {
@@ -23,14 +24,18 @@ public class SSPursuitOpMode extends OpMode {
         allPoints.add(new SSCurvePoint(48, 24, 1.0, 1.0, 16, 10, Math.toRadians(50), 1.0));
         */
 
-        allPoints.add(new SSCurvePoint(0, 0, 1.0, 1.0, 16, 20, Math.toRadians(50), 1.0));
-        allPoints.add(new SSCurvePoint(6, 12, 1.0, 1.0, 16, 20, Math.toRadians(50), 1.0));
-        allPoints.add(new SSCurvePoint(12, 24, 1.0, 1.0, 16, 20, Math.toRadians(50), 1.0));
-        allPoints.add(new SSCurvePoint(24, 36, 1.0, 1.0, 16, 20, Math.toRadians(50), 1.0));
-        allPoints.add(new SSCurvePoint(36, 24, 1.0, 1.0, 16, 20, Math.toRadians(50), 1.0));
-        allPoints.add(new SSCurvePoint(48, 12, 1.0, 1.0, 16, 20, Math.toRadians(50), 1.0));
-        allPoints.add(new SSCurvePoint(36, 0, 1.0, 1.0, 16, 20, Math.toRadians(50), 1.0));
-        allPoints.add(new SSCurvePoint(12, -24, 1.0, 1.0, 16, 20, Math.toRadians(50), 1.0));
+//        allPoints.add(new SSCurvePoint(0, 0, 1.0, 1.0, 16, 20, Math.toRadians(50), 1.0));
+//        allPoints.add(new SSCurvePoint(6, 12, 1.0, 1.0, 16, 20, Math.toRadians(50), 1.0));
+//        allPoints.add(new SSCurvePoint(12, 24, 1.0, 1.0, 16, 20, Math.toRadians(50), 1.0));
+//        allPoints.add(new SSCurvePoint(24, 36, 1.0, 1.0, 16, 20, Math.toRadians(50), 1.0));
+//        allPoints.add(new SSCurvePoint(36, 24, 1.0, 1.0, 16, 20, Math.toRadians(50), 1.0));
+//        allPoints.add(new SSCurvePoint(48, 12, 1.0, 1.0, 16, 20, Math.toRadians(50), 1.0));
+//        allPoints.add(new SSCurvePoint(36, 0, 1.0, 1.0, 16, 20, Math.toRadians(50), 1.0));
+//        allPoints.add(new SSCurvePoint(12, -24, 1.0, 1.0, 16, 20, Math.toRadians(50), 1.0));
+
+        allPoints.add(new SSCurvePoint(0, -48, 1.0, 0.2, 16, 20, Math.toRadians(50), 0));
+        allPoints.add(new SSCurvePoint(12, 0, 1.0, 0.2, 16, 20, Math.toRadians(50), 0));
+        allPoints.add(new SSCurvePoint(24, 48, 1.0, 0.2, 16, 20, Math.toRadians(50), 0));
 
 //         glide.goToPosition(96, 0, 1.0, Math.toRadians(45), 0.3);
         glide.followCurve(allPoints, Math.toRadians(90));

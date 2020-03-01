@@ -1,102 +1,31 @@
-package org.firstinspires.ftc.teamcode.drive.techdiff.ss.pursuit;
-
-import com.acmerobotics.roadrunner.geometry.Pose2d;
-import com.acmerobotics.roadrunner.localization.ThreeTrackingWheelLocalizer;
-import com.acmerobotics.roadrunner.util.NanoClock;
-import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.hardware.HardwareMap;
-import com.qualcomm.robotcore.util.Range;
-
-import org.firstinspires.ftc.robotcore.external.Telemetry;
-import org.firstinspires.ftc.teamcode.drive.localizer.StandardTrackingWheelLocalizer;
-
-import java.util.ArrayList;
+package org.firstinspires.ftc.teamcode.drive.techdiff.ss.updated;
 
 import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.canvas.Canvas;
-import com.acmerobotics.dashboard.config.Config;
 import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
+import com.qualcomm.robotcore.util.Range;
 
+import org.firstinspires.ftc.robotcore.external.Telemetry;
+import org.firstinspires.ftc.teamcode.drive.techdiff.ss.pursuit.SSCurvePoint;
+import org.firstinspires.ftc.teamcode.drive.techdiff.ss.pursuit.SSPoint;
 
-import static org.firstinspires.ftc.teamcode.drive.techdiff.ss.pursuit.MovementVars.movement_x;
-import static org.firstinspires.ftc.teamcode.drive.techdiff.ss.pursuit.MovementVars.movement_y;
-import static org.firstinspires.ftc.teamcode.drive.techdiff.ss.pursuit.MovementVars.movement_turn;
-import static org.firstinspires.ftc.teamcode.drive.techdiff.ss.pursuit.SSMath.AngleWrap;
-import static org.firstinspires.ftc.teamcode.drive.techdiff.ss.pursuit.SSMath.lineCircleIntersection;
+import java.util.ArrayList;
 
-public class SSGlideP {
-    ThreeTrackingWheelLocalizer localizer;
-    DcMotor rf;
-    DcMotor rb;
-    DcMotor lf;
-    DcMotor lb;
+import static org.firstinspires.ftc.teamcode.drive.techdiff.ss.updated.Localizer.world_heading;
+import static org.firstinspires.ftc.teamcode.drive.techdiff.ss.updated.Localizer.world_x;
+import static org.firstinspires.ftc.teamcode.drive.techdiff.ss.updated.Localizer.world_y;
+import static org.firstinspires.ftc.teamcode.drive.techdiff.ss.updated.MathUtils.AngleWrap;
+import static org.firstinspires.ftc.teamcode.drive.techdiff.ss.updated.MathUtils.lineCircleIntersection;
+import static org.firstinspires.ftc.teamcode.drive.techdiff.ss.updated.MovementVars.movement_x;
+import static org.firstinspires.ftc.teamcode.drive.techdiff.ss.updated.MovementVars.movement_y;
+import static org.firstinspires.ftc.teamcode.drive.techdiff.ss.updated.MovementVars.movement_turn;
 
-    int currFollowIndex = 0;
-    IndexedPoint closestToLine;
-    SSCurvePoint followMe;
+public class GlidePursuit {
+    public static void goToPosition(double x, double y, double movementSpeed, double preferredAngle, double turnSpeed) {
+        double distToTarget = Math.hypot(x - world_x, y - world_y);
 
-    private FtcDashboard dashboard;
-    private NanoClock clock;
-
-    double relativeTurnAngle;
-
-    public SSGlideP() {
-        movement_x = 0;
-        movement_y = 0;
-        movement_turn = 0;
-
-        dashboard = FtcDashboard.getInstance();
-        dashboard.setTelemetryTransmissionInterval(25);
-
-        clock = NanoClock.system();
-    }
-
-    /**
-     * Initializes Glide's hardware
-     * @param hardwareMap the HardwareMap object
-     */
-    public void init(HardwareMap hardwareMap) {
-        lf = hardwareMap.get(DcMotor.class, "lf");
-        rf = hardwareMap.get(DcMotor.class, "rf");
-        lb = hardwareMap.get(DcMotor.class, "lb");
-        rb = hardwareMap.get(DcMotor.class, "rb");
-        lf.setDirection(DcMotor.Direction.REVERSE);
-        rf.setDirection(DcMotor.Direction.FORWARD);
-        lb.setDirection(DcMotor.Direction.REVERSE);
-        rb.setDirection(DcMotor.Direction.FORWARD);
-        lf.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        rf.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        lb.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        rb.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        localizer = new StandardTrackingWheelLocalizer(hardwareMap);
-        localizer.setPoseEstimate(new Pose2d(0, -48, Math.toRadians(0)));
-    }
-
-    /**
-     * Moves the robot
-     * @param xPower       the x-component of the power
-     * @param yPower       the y-component of the power
-     * @param headingPower the heading-component of the power
-     */
-    public void rmove(double xPower, double yPower, double headingPower) {
-        lf.setPower(yPower + xPower - headingPower);
-        rf.setPower(yPower - xPower + headingPower);
-        lb.setPower(yPower - xPower - headingPower);
-        rb.setPower(yPower + xPower + headingPower);
-    }
-
-
-    public void goToPosition(double x, double y, double movementSpeed, double preferredAngle, double turnSpeed) {
-        localizer.update();
-
-        double worldX = localizer.getPoseEstimate().getX();
-        double worldY = localizer.getPoseEstimate().getY();
-        double worldHeading = localizer.getPoseEstimate().getHeading();
-
-        double distToTarget = Math.hypot(x - worldX, y - worldY);
-
-        double absoluteAngleToTarget = Math.atan2(y - worldY, x - worldX);
-        double relativeAngleToPoint = AngleWrap(absoluteAngleToTarget - (worldHeading - Math.toRadians(90)));
+        double absoluteAngleToTarget = Math.atan2(y - world_y, x - world_x);
+        double relativeAngleToPoint = AngleWrap(absoluteAngleToTarget - (world_heading - Math.toRadians(90)));
 
         double relativeXToPoint = Math.cos(relativeAngleToPoint) * distToTarget;
         double relativeYToPoint = Math.sin(relativeAngleToPoint) * distToTarget;
@@ -108,17 +37,13 @@ public class SSGlideP {
         movementXPower *= movementSpeed;
         movementYPower *= movementSpeed;
 
-        relativeTurnAngle = relativeAngleToPoint - Math.toRadians(180) + preferredAngle;
+        double relativeTurnAngle = relativeAngleToPoint - Math.toRadians(180) + preferredAngle;
         double movementHeadingPower = Range.clip(relativeTurnAngle / Math.toRadians(30), -1, 1) * turnSpeed;
 
         // Prevent heading overshoot when near target
         if (distToTarget < 3) {
             movementHeadingPower = 0;
         }
-
-        movement_x = movementXPower;
-        movement_y = movementYPower;
-        movement_turn = movementHeadingPower;
 
         // TODO: add pointAngle optimization and tinker with different smoothing effects near the end of a line
 
@@ -128,11 +53,15 @@ public class SSGlideP {
         movementXPower = Range.clip(movementXPower, -movementSpeed, movementSpeed);
         movementYPower = Range.clip(movementYPower, -movementSpeed, movementSpeed);
 
-        rmove(movementXPower, movementYPower, movementHeadingPower);
+        movement_x = movementXPower;
+        movement_y = movementYPower;
+        movement_turn = movementHeadingPower;
+
+//        rmove(movementXPower, movementYPower, movementHeadingPower);
 
 //        TelemetryPacket packet = new TelemetryPacket();
 //
-//        packet.put("world heading", worldHeading);
+//        packet.put("world heading", world_heading);
 //        packet.put("movement_turn", movement_turn);
 //        packet.put("relative turn angle", relativeTurnAngle);
 //        packet.put("relative turn angle / 30r", relativeTurnAngle / Math.toRadians(30));
@@ -140,17 +69,11 @@ public class SSGlideP {
 //        dashboard.sendTelemetryPacket(packet);
     }
 
-    public void goToPosition2(double x, double y, double movementSpeed, double preferredAngle, double turnSpeed) {
-        localizer.update();
+    public static void goToPosition2(double x, double y, double movementSpeed, double preferredAngle, double turnSpeed) {
+        double distToTarget = Math.hypot(x - world_x, y - world_y);
 
-        double worldX = localizer.getPoseEstimate().getX();
-        double worldY = localizer.getPoseEstimate().getY();
-        double worldHeading = localizer.getPoseEstimate().getHeading();
-
-        double distToTarget = Math.hypot(x - worldX, y - worldY);
-
-        double absoluteAngleToTarget = Math.atan2(y - worldY, x - worldX);
-        double relativeAngleToPoint = AngleWrap(absoluteAngleToTarget - (worldHeading - Math.toRadians(90)));
+        double absoluteAngleToTarget = Math.atan2(y - world_y, x - world_x);
+        double relativeAngleToPoint = AngleWrap(absoluteAngleToTarget - (world_heading - Math.toRadians(90)));
 
         double relativeXToPoint = Math.cos(relativeAngleToPoint) * distToTarget;
         double relativeYToPoint = Math.sin(relativeAngleToPoint) * distToTarget;
@@ -163,7 +86,7 @@ public class SSGlideP {
         movementYPower *= movementSpeed;
 
         // Old Heading stuff
-        relativeTurnAngle = relativeAngleToPoint - Math.toRadians(180) + preferredAngle;
+        double relativeTurnAngle = relativeAngleToPoint - Math.toRadians(180) + preferredAngle;
         double movementHeadingPower = Range.clip(relativeTurnAngle / Math.toRadians(30), -1, 1) * turnSpeed;
 
 //         Prevent heading overshoot when near target
@@ -171,17 +94,16 @@ public class SSGlideP {
             movementHeadingPower = 0;
         }
 
-        movement_x = movementXPower;
-        movement_y = movementYPower;
-//        movement_turn = movementHeadingPower;
+//        movement_x = movementXPower;
+//        movement_y = movementYPower;
 
         // TODO: add pointAngle optimization and tinker with different smoothing effects near the end of a line
         // New heading stuff
 //        double actualRelativePointAngle = (preferredAngle - Math.toRadians(90));
-//        double angleToPointRaw = Math.atan2(y - worldY, x - worldX);
+//        double angleToPointRaw = Math.atan2(y - world_y, x - world_x);
 //        double absolutePointAngle = angleToPointRaw + actualRelativePointAngle;
 //
-//        double relativePointAngle = AngleWrap(absolutePointAngle - worldHeading);
+//        double relativePointAngle = AngleWrap(absolutePointAngle - world_heading);
 
 //        double movementHeadingPower = turnSpeed;
 //
@@ -196,23 +118,25 @@ public class SSGlideP {
         movementXPower = Range.clip(movementXPower, -movementSpeed, movementSpeed);
         movementYPower = Range.clip(movementYPower, -movementSpeed, movementSpeed);
 
-
-        rmove(movementXPower, movementYPower, movementHeadingPower);
-
         TelemetryPacket packet = new TelemetryPacket();
 
-        packet.put("world heading", worldHeading);
-        packet.put("movement_turn", movement_turn);
+        movement_x = movementXPower;
+        movement_y = movementYPower;
+        movement_turn = movementHeadingPower;
+
+
+//        packet.put("world heading", world_heading);
+//        packet.put("movement_turn", movement_turn);
 //        packet.put("relative point angle", relativePointAngle);
 //        packet.put("relative point angle / 2r", relativePointAngle / Math.toRadians(2));
 
 //        dashboard.sendTelemetryPacket(packet);
     }
 
-    public void displayTelemetry(Telemetry t) {
-        t.addData("worldX", localizer.getPoseEstimate().getX());
-        t.addData("worldY", localizer.getPoseEstimate().getY());
-        t.addData("worldHeading", localizer.getPoseEstimate().getHeading());
+    public static void displayTelemetry(Telemetry t) {
+//        t.addData("world_x", world_x);
+//        t.addData("world_y", world_y);
+//        t.addData("world_heading", world_heading);
 //        t.addData("currFollowIndex", closestToLine.index);
 //        t.addData("currFollow x", closestToLine.x);
 //        t.addData("currFollow y", closestToLine.y);
@@ -220,11 +144,7 @@ public class SSGlideP {
 //        t.addData("follow y", followMe.y);
     }
 
-    public SSCurvePoint getFollowPointPath(ArrayList<SSCurvePoint> pathPoints, SSPoint robotLocation, double followRadius) {
-        double worldX = localizer.getPoseEstimate().getX();
-        double worldY = localizer.getPoseEstimate().getY();
-        double worldHeading = localizer.getPoseEstimate().getHeading();
-
+    public static SSCurvePoint getFollowPointPath(ArrayList<SSCurvePoint> pathPoints, SSPoint robotLocation, double followRadius) {
 //        followMe = new SSCurvePoint(pathPoints.get(currFollowIndex + 1));
 //        followMe.setPoint(new SSPoint(closestToLine.x, closestToLine.y));
 
@@ -239,8 +159,8 @@ public class SSGlideP {
 
             double closestAngle = Integer.MAX_VALUE;
             for (SSPoint thisIntersection : intersections) {
-                double angle = Math.atan2(thisIntersection.y - worldY, thisIntersection.x - worldX);
-                double deltaAngle = Math.abs(AngleWrap(angle - worldHeading));
+                double angle = Math.atan2(thisIntersection.y - world_y, thisIntersection.x - world_x);
+                double deltaAngle = Math.abs(AngleWrap(angle - world_heading));
 
                 if (deltaAngle < closestAngle) {
                     closestAngle = deltaAngle;
@@ -251,20 +171,15 @@ public class SSGlideP {
         return followMe;
     }
 
-    public void followCurve(ArrayList<SSCurvePoint> allPoints, double followAngle) {
-        update();
-        double worldX = localizer.getPoseEstimate().getX();
-        double worldY = localizer.getPoseEstimate().getY();
-        double worldHeading = localizer.getPoseEstimate().getHeading();
-
+    public static void followCurve(ArrayList<SSCurvePoint> allPoints, double followAngle) {
         TelemetryPacket packet = new TelemetryPacket();
         Canvas fieldOverlay = packet.fieldOverlay();
 
-        closestToLine = findIndex(allPoints, worldX, worldY);
-        currFollowIndex = closestToLine.index + 1;
+        IndexedPoint closestToLine = findIndex(allPoints, world_x, world_y);
+        int currFollowIndex = closestToLine.index + 1;
 
-//        followMe = getFollowPointPath(allPoints, new SSPoint(worldX, worldY), allPoints.get(0).followDist);
-        followMe = getFollowPointPath(allPoints, new SSPoint(worldX, worldY), allPoints.get(currFollowIndex).followDist);
+//        followMe = getFollowPointPath(allPoints, new SSPoint(world_x, world_y), allPoints.get(0).followDist);
+        SSCurvePoint followMe = getFollowPointPath(allPoints, new SSPoint(world_x, world_y), allPoints.get(currFollowIndex).followDist);
 
         ArrayList<SSCurvePoint> pathExtended = (ArrayList<SSCurvePoint>) allPoints.clone();
 
@@ -273,9 +188,9 @@ public class SSGlideP {
 
         // Robot Position
         fieldOverlay.setFill("#3F51B5");
-        fieldOverlay.fillRect(worldX, worldY, 7, 7);
+        fieldOverlay.fillRect(world_x, world_y, 7, 7);
 
-        SSCurvePoint pointToMe = getFollowPointPath(pathExtended, new SSPoint(worldX, worldY), allPoints.get(currFollowIndex).followDist);
+        SSCurvePoint pointToMe = getFollowPointPath(pathExtended, new SSPoint(world_x, world_y), allPoints.get(currFollowIndex).followDist);
 
         for (int i = 0; i < allPoints.size(); i++) {
 //            ComputerDebugging.sendLine(new FloatPoint(allPoints.get(i).x, allPoints.get(i).y),
@@ -306,32 +221,40 @@ public class SSGlideP {
 
 
         if(distToFinalEnd <= followMe.followDist + 4 ||
-                Math.hypot(worldX-allPoints.get(allPoints.size()-1).x,
-                        worldY-allPoints.get(allPoints.size()-1).y) < followMe.followDist + 4){
+                Math.hypot(world_x-allPoints.get(allPoints.size()-1).x,
+                        world_y-allPoints.get(allPoints.size()-1).y) < followMe.followDist + 4){
 
             followMe.setPoint(allPoints.get(allPoints.size()-1).toPoint());
         }
-        
+
         // TODO: Figure out how to smooth out the followDist and stuff
         goToPosition2(followMe.x, followMe.y, followMe.moveSpeed, followAngle, followMe.turnSpeed);
 
 
         // Testing
-        double currFollowAngle = Math.atan2(pointToMe.y - worldY, pointToMe.x - worldX);
+        double currFollowAngle = Math.atan2(pointToMe.y - world_y, pointToMe.x - world_x);
         currFollowAngle += AngleWrap(followAngle - Math.toRadians(90));
 
         double angleDelta = pointAngle(currFollowAngle, allPoints.get(currFollowIndex).turnSpeed, Math.toRadians(45));
+
+        FtcDashboard dashboard = FtcDashboard.getInstance();
+
+        packet.put("movement_x", movement_x);
+        packet.put("movement_y", movement_y);
+        packet.put("movement_turn", movement_turn);
+        packet.put("world_x", world_x);
+        packet.put("world_y", world_y);
+        packet.put("world_turn", world_heading);
 
         dashboard.sendTelemetryPacket(packet);
     }
 
     // The relative point angle
-    public double pointAngle(double followAngle, double turnSpeed, double decelerationRadians) {
-        double worldHeading = localizer.getPoseEstimate().getHeading();
-        return AngleWrap(followAngle - worldHeading);
+    public static double pointAngle(double followAngle, double turnSpeed, double decelerationRadians) {
+        return AngleWrap(followAngle - world_heading);
     }
 
-    public IndexedPoint findIndex(ArrayList<SSCurvePoint> allPoints, double x, double y) {
+    public static IndexedPoint findIndex(ArrayList<SSCurvePoint> allPoints, double x, double y) {
         double closestDist = Integer.MAX_VALUE;
 
         int closestIndex = 0;
@@ -355,7 +278,7 @@ public class SSGlideP {
         return new IndexedPoint(closestLine.x, closestLine.y, closestIndex);
     }
 
-    public SSPoint findClosestPointOnLine(double lineX1, double lineY1, double lineX2, double lineY2, double x, double y) {
+    public static SSPoint findClosestPointOnLine(double lineX1, double lineY1, double lineX2, double lineY2, double x, double y) {
         if (lineX1 == lineX2) {
             lineX1 = lineX2 + 0.01;
         }
@@ -373,7 +296,7 @@ public class SSGlideP {
         return new SSPoint(xClipedToLine, yClipedToLine);
     }
 
-    public SSCurvePoint extendLine(SSCurvePoint pointA, SSCurvePoint pointB, double additiveDistance) {
+    public static SSCurvePoint extendLine(SSCurvePoint pointA, SSCurvePoint pointB, double additiveDistance) {
 
         double lineAngle = Math.atan2(pointB.y - pointA.y, pointB.x - pointA.x);
 
@@ -397,20 +320,5 @@ public class SSGlideP {
             this.y = y;
             this.index = index;
         }
-    }
-
-    public void update() {
-        localizer.update();
-        TelemetryPacket packet = new TelemetryPacket();
-        Canvas fieldOverlay = packet.fieldOverlay();
-
-        packet.put("x", localizer.getPoseEstimate().getX());
-        packet.put("y", localizer.getPoseEstimate().getY());
-        packet.put("odo heading", Math.toDegrees(localizer.getPoseEstimate().getHeading()));
-
-//        fieldOverlay.setStroke("#3F51B5");
-//        fieldOverlay.fillRect(localizer.getPoseEstimate().getX(), localizer.getPoseEstimate().getY(), 7, 7);
-
-//        dashboard.sendTelemetryPacket(packet);
     }
 }
