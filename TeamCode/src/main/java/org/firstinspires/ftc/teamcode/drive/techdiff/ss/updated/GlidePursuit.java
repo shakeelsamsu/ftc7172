@@ -21,53 +21,53 @@ import static org.firstinspires.ftc.teamcode.drive.techdiff.ss.updated.MovementV
 import static org.firstinspires.ftc.teamcode.drive.techdiff.ss.updated.MovementVars.movement_turn;
 
 public class GlidePursuit {
-    public static void goToPosition(double x, double y, double movementSpeed, double preferredAngle, double turnSpeed) {
-        double distToTarget = Math.hypot(x - world_x, y - world_y);
-
-        double absoluteAngleToTarget = Math.atan2(y - world_y, x - world_x);
-        double relativeAngleToPoint = AngleWrap(absoluteAngleToTarget - (world_heading - Math.toRadians(90)));
-
-        double relativeXToPoint = Math.cos(relativeAngleToPoint) * distToTarget;
-        double relativeYToPoint = Math.sin(relativeAngleToPoint) * distToTarget;
-
-        // Normalize the movement vectors
-        double movementXPower = relativeXToPoint / (Math.abs(relativeXToPoint) + Math.abs(relativeYToPoint));
-        double movementYPower = relativeYToPoint / (Math.abs(relativeXToPoint) + Math.abs(relativeYToPoint));
-
-        movementXPower *= movementSpeed;
-        movementYPower *= movementSpeed;
-
-        double relativeTurnAngle = relativeAngleToPoint - Math.toRadians(180) + preferredAngle;
-        double movementHeadingPower = Range.clip(relativeTurnAngle / Math.toRadians(30), -1, 1) * turnSpeed;
-
-        // Prevent heading overshoot when near target
-        if (distToTarget < 3) {
-            movementHeadingPower = 0;
-        }
-
-        // TODO: add pointAngle optimization and tinker with different smoothing effects near the end of a line
-
-        movementXPower *= Math.abs(relativeXToPoint) / 12;
-        movementYPower *= Math.abs(relativeYToPoint) / 12;
-
-        movementXPower = Range.clip(movementXPower, -movementSpeed, movementSpeed);
-        movementYPower = Range.clip(movementYPower, -movementSpeed, movementSpeed);
-
-        movement_x = movementXPower;
-        movement_y = movementYPower;
-        movement_turn = movementHeadingPower;
-
-//        rmove(movementXPower, movementYPower, movementHeadingPower);
-
-//        TelemetryPacket packet = new TelemetryPacket();
+//    public static void goToPosition(double x, double y, double movementSpeed, double preferredAngle, double turnSpeed) {
+//        double distToTarget = Math.hypot(x - world_x, y - world_y);
 //
-//        packet.put("world heading", world_heading);
-//        packet.put("movement_turn", movement_turn);
-//        packet.put("relative turn angle", relativeTurnAngle);
-//        packet.put("relative turn angle / 30r", relativeTurnAngle / Math.toRadians(30));
+//        double absoluteAngleToTarget = Math.atan2(y - world_y, x - world_x);
+//        double relativeAngleToPoint = AngleWrap(absoluteAngleToTarget - (world_heading - Math.toRadians(90)));
 //
-//        dashboard.sendTelemetryPacket(packet);
-    }
+//        double relativeXToPoint = Math.cos(relativeAngleToPoint) * distToTarget;
+//        double relativeYToPoint = Math.sin(relativeAngleToPoint) * distToTarget;
+//
+//        // Normalize the movement vectors
+//        double movementXPower = relativeXToPoint / (Math.abs(relativeXToPoint) + Math.abs(relativeYToPoint));
+//        double movementYPower = relativeYToPoint / (Math.abs(relativeXToPoint) + Math.abs(relativeYToPoint));
+//
+//        movementXPower *= movementSpeed;
+//        movementYPower *= movementSpeed;
+//
+//        double relativeTurnAngle = relativeAngleToPoint - Math.toRadians(180) + preferredAngle;
+//        double movementHeadingPower = Range.clip(relativeTurnAngle / Math.toRadians(30), -1, 1) * turnSpeed;
+//
+//        // Prevent heading overshoot when near target
+//        if (distToTarget < 3) {
+//            movementHeadingPower = 0;
+//        }
+//
+//        // TODO: add pointAngle optimization and tinker with different smoothing effects near the end of a line
+//
+//        movementXPower *= Math.abs(relativeXToPoint) / 12;
+//        movementYPower *= Math.abs(relativeYToPoint) / 12;
+//
+//        movementXPower = Range.clip(movementXPower, -movementSpeed, movementSpeed);
+//        movementYPower = Range.clip(movementYPower, -movementSpeed, movementSpeed);
+//
+//        movement_x = movementXPower;
+//        movement_y = movementYPower;
+//        movement_turn = movementHeadingPower;
+//
+////        rmove(movementXPower, movementYPower, movementHeadingPower);
+//
+////        TelemetryPacket packet = new TelemetryPacket();
+////
+////        packet.put("world heading", world_heading);
+////        packet.put("movement_turn", movement_turn);
+////        packet.put("relative turn angle", relativeTurnAngle);
+////        packet.put("relative turn angle / 30r", relativeTurnAngle / Math.toRadians(30));
+////
+////        dashboard.sendTelemetryPacket(packet);
+//    }
 
     public static void goToPosition2(double x, double y, double movementSpeed, double preferredAngle, double turnSpeed) {
         double distToTarget = Math.hypot(x - world_x, y - world_y);
@@ -82,8 +82,14 @@ public class GlidePursuit {
         double movementXPower = relativeXToPoint / (Math.abs(relativeXToPoint) + Math.abs(relativeYToPoint));
         double movementYPower = relativeYToPoint / (Math.abs(relativeXToPoint) + Math.abs(relativeYToPoint));
 
-        movementXPower *= movementSpeed;
-        movementYPower *= movementSpeed;
+//        movementXPower *= movementSpeed;
+//        movementYPower *= movementSpeed;
+        movementXPower *= Math.abs(relativeXToPoint) / 12;
+        movementYPower *= Math.abs(relativeYToPoint) / 12;
+
+        movement_x = Range.clip(movementXPower, -movementSpeed, movementSpeed);
+        movement_y = Range.clip(movementYPower, -movementSpeed, movementSpeed);
+
 
         // Old Heading stuff
         double relativeTurnAngle = relativeAngleToPoint - Math.toRadians(180) + preferredAngle;
@@ -105,34 +111,29 @@ public class GlidePursuit {
 
         double relativePointAngle = AngleWrap(absolutePointAngle - world_heading);
 
-        double movementHeadingPower = turnSpeed;
+        double decelerationDistance = Math.toRadians(40);
+
+        double movementHeadingPower = relativePointAngle*turnSpeed/decelerationDistance;
+
+//        movementHeadingPower *= Range.clip(Math.abs(relativePointAngle)/Math.toRadians(30), 0, 1);
+        movement_turn = Range.clip(movementHeadingPower, -turnSpeed,turnSpeed);
 
         if (distToTarget < 3) {
-            movementHeadingPower = 0;
+            movement_turn = 0;
         }
 
-        movementHeadingPower *= Range.clip(Math.abs(relativePointAngle)/Math.toRadians(30), 0, 1);
+        movement_x *= Range.clip(Math.abs(relativeXToPoint/2.5),0,1);
+        movement_y *= Range.clip(Math.abs(relativeYToPoint/2.5),0,1);
+        movement_turn *= Range.clip(Math.abs(relativePointAngle)/Math.toRadians(2),0,1);
 
         TelemetryPacket packet = new TelemetryPacket();
-
-        movementXPower *= Math.abs(relativeXToPoint) / 12;
-        movementYPower *= Math.abs(relativeYToPoint) / 12;
-
-        movementXPower = Range.clip(movementXPower, -movementSpeed, movementSpeed);
-        movementYPower = Range.clip(movementYPower, -movementSpeed, movementSpeed);
-
-
-        movement_x = movementXPower;
-        movement_y = movementYPower;
-        movement_turn = movementHeadingPower;
-
-
-//        packet.put("world heading", world_heading);
-//        packet.put("movement_turn", movement_turn);
-//        packet.put("relative point angle", relativePointAngle);
+        packet.put("world heading", Math.toDegrees(world_heading));
+        packet.put("movement_turn", movement_turn);
+        packet.put("relative point angle", Math.toDegrees(relativePointAngle));
+        packet.put("absolute point angle", Math.toDegrees(absolutePointAngle));
 //        packet.put("relative point angle / 2r", relativePointAngle / Math.toRadians(2));
-
-//        dashboard.sendTelemetryPacket(packet);
+        FtcDashboard dashboard = FtcDashboard.getInstance();
+        dashboard.sendTelemetryPacket(packet);
     }
 
     public static void displayTelemetry(Telemetry t) {
@@ -268,7 +269,8 @@ public class GlidePursuit {
     public static double pointAngle(double followAngle, double turnSpeed, double decelerationRadians) {
         double relativePointAngle = AngleWrap(followAngle - world_heading);
 
-//        movement_turn = turnSpeed / decelerationRadians;
+        double speed = (relativePointAngle/decelerationRadians)*turnSpeed;
+        movement_turn = Range.clip(speed, -turnSpeed, turnSpeed);
 
         movement_turn *= Range.clip(Math.abs(relativePointAngle)/Math.toRadians(3), 0, 1);
 

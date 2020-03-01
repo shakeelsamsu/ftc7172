@@ -38,7 +38,7 @@ public class TestOp extends Auto {
         allPoints.add(new SSCurvePoint(0, 0, 1.0, 1.0, 16, 20, Math.toRadians(50), 1.0));
         allPoints.add(new SSCurvePoint(24, 0, 1.0, 1.0, 16, 20, Math.toRadians(50), 1.0));
         allPoints.add(new SSCurvePoint(48, 0, 1.0, 1.0, 16, 20, Math.toRadians(50), 1.0));
-//        allPoints.add(new SSCurvePoint(96, 0,  1.0, 1.0, 16, 20, Math.toRadians(50), 1.0));
+        allPoints.add(new SSCurvePoint(72, 0,  1.0, 1.0, 16, 20, Math.toRadians(50), 1.0));
 
         followCurve(allPoints, Math.toRadians(90));
     }
