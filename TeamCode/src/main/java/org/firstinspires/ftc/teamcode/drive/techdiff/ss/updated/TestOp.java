@@ -31,9 +31,14 @@ public class TestOp extends Auto {
 //        allPoints.add(new SSCurvePoint(36, 0, 1.0, 1.0, 16, 20, Math.toRadians(50), 1.0));
 //        allPoints.add(new SSCurvePoint(12, -24, 1.0, 1.0, 16, 20, Math.toRadians(50), 1.0));
 
-        allPoints.add(new SSCurvePoint(0, -48, 1.0, 1.0, 16, 20, Math.toRadians(50), 1.0));
-        allPoints.add(new SSCurvePoint(12, 0, 1.0, 1.0, 16, 20, Math.toRadians(50), 1.0));
-        allPoints.add(new SSCurvePoint(24, 48, 1.0, 1.0, 16, 20, Math.toRadians(50), 1.0));
+//        allPoints.add(new SSCurvePoint(0, -48, 1.0, 1.0, 16, 20, Math.toRadians(50), 1.0));
+//        allPoints.add(new SSCurvePoint(12, 0, 1.0, 1.0, 16, 20, Math.toRadians(50), 1.0));
+//        allPoints.add(new SSCurvePoint(24, 48, 1.0, 1.0, 16, 20, Math.toRadians(50), 1.0));
+
+        allPoints.add(new SSCurvePoint(0, 0, 1.0, 1.0, 16, 20, Math.toRadians(50), 1.0));
+        allPoints.add(new SSCurvePoint(24, 0, 1.0, 1.0, 16, 20, Math.toRadians(50), 1.0));
+        allPoints.add(new SSCurvePoint(48, 0, 1.0, 1.0, 16, 20, Math.toRadians(50), 1.0));
+//        allPoints.add(new SSCurvePoint(96, 0,  1.0, 1.0, 16, 20, Math.toRadians(50), 1.0));
 
         followCurve(allPoints, Math.toRadians(90));
     }

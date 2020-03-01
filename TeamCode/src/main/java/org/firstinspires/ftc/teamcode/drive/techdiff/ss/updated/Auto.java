@@ -23,7 +23,7 @@ public abstract class Auto extends OpMode {
 
         localizer = new Localizer(new StandardTrackingWheelLocalizer(hardwareMap));
 //        localizer.setPoseEstimate(new Pose2d(0, 0, 0));
-        localizer.setPoseEstimate(new Pose2d(0, -48, 0));
+        localizer.setPoseEstimate(new Pose2d(0, 0, 0));
 //        dashboard.setTelemetryTransmissionInterval(25);
     }
 
