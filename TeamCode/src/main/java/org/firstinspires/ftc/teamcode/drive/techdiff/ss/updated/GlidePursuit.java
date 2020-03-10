@@ -93,47 +93,51 @@ public class GlidePursuit {
 
         // Old Heading stuff
         double relativeTurnAngle = relativeAngleToPoint - Math.toRadians(180) + preferredAngle;
-//        double movementHeadingPower = Range.clip(relativeTurnAngle / Math.toRadians(30), -1, 1) * turnSpeed;
+        double movementHeadingPower = Range.clip(relativeTurnAngle / Math.toRadians(30), -1, 1) * turnSpeed;
+
+        movement_turn = movementHeadingPower;
 
 //         Prevent heading overshoot when near target
-//        if (distToTarget < 3) {
-//            movementHeadingPower = 0;
-//        }
+        if (distToTarget < 3) {
+            movement_turn = 0;
+        }
 
 //        movement_x = movementXPower;
 //        movement_y = movementYPower;
 
         // TODO: add pointAngle optimization and tinker with different smoothing effects near the end of a line
         // New heading stuff
-        double actualRelativePointAngle = (preferredAngle - Math.toRadians(90));
-        double angleToPointRaw = Math.atan2(y - world_y, x - world_x);
-        double absolutePointAngle = angleToPointRaw + actualRelativePointAngle;
-
-        double relativePointAngle = AngleWrap(absolutePointAngle - world_heading);
-
-        double decelerationDistance = Math.toRadians(40);
-
-        double movementHeadingPower = relativePointAngle*turnSpeed/decelerationDistance;
-
-//        movementHeadingPower *= Range.clip(Math.abs(relativePointAngle)/Math.toRadians(30), 0, 1);
-        movement_turn = Range.clip(movementHeadingPower, -turnSpeed,turnSpeed);
-
-        if (distToTarget < 3) {
-            movement_turn = 0;
-        }
+//        double actualRelativePointAngle = (preferredAngle - Math.toRadians(90));
+//        double angleToPointRaw = Math.atan2(y - world_y, x - world_x);
+//        double absolutePointAngle = angleToPointRaw + actualRelativePointAngle;
+//
+//        double relativePointAngle = AngleWrap(absolutePointAngle - world_heading);
+//
+//        double decelerationDistance = Math.toRadians(40);
+//
+////        double movementHeadingPower = relativePointAngle*turnSpeed/decelerationDistance;
+//
+//        double movementHeadingPower = turnSpeed / decelerationDistance;
+//
+////        movementHeadingPower *= Range.clip(Math.abs(relativePointAngle)/Math.toRadians(30), 0, 1);
+//        movement_turn = Range.clip(movementHeadingPower, -turnSpeed,turnSpeed);
+//
+//        if (distToTarget < 3) {
+//            movement_turn = 0;
+//        }
 
         movement_x *= Range.clip(Math.abs(relativeXToPoint/2.5),0,1);
         movement_y *= Range.clip(Math.abs(relativeYToPoint/2.5),0,1);
-        movement_turn *= Range.clip(Math.abs(relativePointAngle)/Math.toRadians(2),0,1);
+//        movement_turn *= Range.clip(Math.abs(relativePointAngle)/Math.toRadians(2),0,1);
 
         TelemetryPacket packet = new TelemetryPacket();
         packet.put("world heading", Math.toDegrees(world_heading));
         packet.put("movement_turn", movement_turn);
-        packet.put("relative point angle", Math.toDegrees(relativePointAngle));
-        packet.put("absolute point angle", Math.toDegrees(absolutePointAngle));
+//        packet.put("relative point angle", Math.toDegrees(relativePointAngle));
+//        packet.put("absolute point angle", Math.toDegrees(absolutePointAngle));
 //        packet.put("relative point angle / 2r", relativePointAngle / Math.toRadians(2));
         FtcDashboard dashboard = FtcDashboard.getInstance();
-        dashboard.sendTelemetryPacket(packet);
+//        dashboard.sendTelemetryPacket(packet);
     }
 
     public static void displayTelemetry(Telemetry t) {
@@ -184,6 +188,22 @@ public class GlidePursuit {
         TelemetryPacket packet = new TelemetryPacket();
         Canvas fieldOverlay = packet.fieldOverlay();
 
+        for (int i = 0; i < allPoints.size(); i++) {
+            // Path Lines
+            fieldOverlay.setStroke("#FCDF03");
+            if (i < allPoints.size() - 1)
+                fieldOverlay.strokeLine(allPoints.get(i).x, allPoints.get(i).y, allPoints.get(i + 1).x, allPoints.get(i + 1).y);
+
+            // Path Points
+            fieldOverlay.setFill("#FF0000");
+            fieldOverlay.fillCircle(allPoints.get(i).x, allPoints.get(i).y, 2);
+        }
+
+        // Robot Position
+        fieldOverlay.setFill("#3F51B5");
+        fieldOverlay.fillRect(world_x, world_y, 7, 7);
+
+
         IndexedPoint closestToLine = findIndex(allPoints, world_x, world_y);
         int currFollowIndex = closestToLine.index + 1;
 
@@ -195,9 +215,6 @@ public class GlidePursuit {
         int numPoints = allPoints.size();
         pathExtended.set(pathExtended.size() - 1, extendLine(allPoints.get(numPoints - 1), allPoints.get(numPoints - 2), allPoints.get(numPoints - 1).pointLength));
 
-        // Robot Position
-        fieldOverlay.setFill("#3F51B5");
-        fieldOverlay.fillRect(world_x, world_y, 7, 7);
 
         SSCurvePoint pointToMe = getFollowPointPath(pathExtended, new SSPoint(world_x, world_y), allPoints.get(currFollowIndex).followDist);
 
@@ -207,29 +224,6 @@ public class GlidePursuit {
         if(clippedDistance <= followMe.followDist || Math.hypot(world_x - lastPoint.x, world_y - lastPoint.y) < followMe.followDist + 15) {
             followMe.setPoint(lastPoint.toPoint());
         }
-
-        for (int i = 0; i < allPoints.size(); i++) {
-//            ComputerDebugging.sendLine(new FloatPoint(allPoints.get(i).x, allPoints.get(i).y),
-//                new FloatPoint(allPoints.get(i + 1).x, allPoints.get(i + 1).y));
-
-            // Path Lines
-            fieldOverlay.setStroke("#FCDF03");
-            if (i < allPoints.size() - 1)
-                fieldOverlay.strokeLine(allPoints.get(i).x, allPoints.get(i).y, allPoints.get(i + 1).x, allPoints.get(i + 1).y);
-
-            // Path Points
-            fieldOverlay.setFill("#FF0000");
-            fieldOverlay.fillCircle(allPoints.get(i).x, allPoints.get(i).y, 2);
-        }
-
-        // Following Point
-//        ComputerDebugging.sendKeyPoint(new FloatPoint(followMe.x, followMe.y));
-        fieldOverlay.setFill("#2CFC03");
-        fieldOverlay.fillCircle(followMe.x, followMe.y, 1);
-
-        // Pointing point
-//        fieldOverlay.setFill("#03FC2C");
-//        fieldOverlay.fillCircle(pointToMe.x, pointToMe.y, 1);
 
         double distToFinalEnd = Math.hypot(
                 closestToLine.x-allPoints.get(allPoints.size()-1).x,
@@ -246,6 +240,9 @@ public class GlidePursuit {
         // TODO: Figure out how to smooth out the followDist and stuff
         goToPosition2(followMe.x, followMe.y, followMe.moveSpeed, followAngle, followMe.turnSpeed);
 
+        // Following Point
+        fieldOverlay.setFill("#2CFC03");
+        fieldOverlay.fillCircle(followMe.x, followMe.y, 1);
 
         // Testing
         double currFollowAngle = Math.atan2(pointToMe.y - world_y, pointToMe.x - world_x);

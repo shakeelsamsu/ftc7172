@@ -69,7 +69,7 @@ public class SSGlideP {
         lb.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         rb.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         localizer = new StandardTrackingWheelLocalizer(hardwareMap);
-        localizer.setPoseEstimate(new Pose2d(0, -48, Math.toRadians(0)));
+        localizer.setPoseEstimate(new Pose2d(0, 0, Math.toRadians(0)));
     }
 
     /**
